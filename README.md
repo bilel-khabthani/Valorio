@@ -9,10 +9,11 @@ frontend Angular 20 formant un tableau de bord unique.
 | `valorio-backend/service-don` | Spring Boot 3.3 / Java 17, JDBC + Flyway | 8082 |
 | `valorio-backend/service-recyclage` | Spring Boot 3.3 / Java 17, JDBC + Flyway | 8083 |
 | `valorio-backend/service-auth` | Spring Boot 3.3 / Java 17, Security, JDBC, Flyway, HMAC-SHA256 | 8084 |
+| `valorio-backend/service-marketplace` | Spring Boot 3 / Java 17, JPA, IA & NLP, H2/PostgreSQL | 8085 |
 | `valorio-frontend` | Angular 20 (workspace modulaire, 7 libs + pages standalone) | 4200 |
+| `valorio-marketplace-frontend` | Angular 17 (Interface ergonomique Lost & Found Marketplace) | 4200 |
 
-Chaque service utilise la même base de données PostgreSQL `valorio`, avec un schéma SQL dédié
-(`reparation`, `don`, `recyclage`, `auth`).
+Chaque service utilise la base de données PostgreSQL `valorio` ou H2 (schémas `reparation`, `don`, `recyclage`, `auth`, `marketplace`).
 
 ## Prérequis
 
@@ -47,6 +48,7 @@ mvn -f valorio-backend/service-reparation spring-boot:run   # http://localhost:8
 mvn -f valorio-backend/service-don spring-boot:run          # http://localhost:8082
 mvn -f valorio-backend/service-recyclage spring-boot:run    # http://localhost:8083
 mvn -f valorio-backend/service-auth spring-boot:run         # http://localhost:8084
+mvn -f valorio-backend/service-marketplace spring-boot:run  # http://localhost:8085
 ```
 
 Vérifications rapides :
@@ -54,20 +56,29 @@ Vérifications rapides :
 ```powershell
 Invoke-RestMethod http://localhost:8081/actuator/health
 Invoke-RestMethod http://localhost:8084/actuator/health
+Invoke-RestMethod http://localhost:8085/api/marketplace/stats
 ```
 
-Documentation interactive (Swagger UI OpenAPI) :
+Documentation interactive & endpoints :
 
 - Réparation : http://localhost:8081/swagger-ui.html
 - Don : http://localhost:8082/swagger-ui.html
 - Recyclage : http://localhost:8083/swagger-ui.html
 - Authentification : http://localhost:8084/swagger-ui.html
+- Marketplace API : http://localhost:8085/api/marketplace/items (H2 Console: http://localhost:8085/h2-console)
 
 ## 3. Frontend
 
+Lancer l'un des frontends selon le module à tester :
+
 ```powershell
+# Frontend Global Valorio (Modules Don, Recyclage, Réparation, Auth) :
 cd valorio-frontend
 npx ng serve          # http://localhost:4200
+
+# Frontend Dédié Marketplace (Module Lost & Found Marketplace IA) :
+cd valorio-marketplace-frontend
+npm start             # http://localhost:4200
 ```
 
 Le dev-server redirige (`proxy.conf.json`) :
@@ -104,6 +115,7 @@ mvn -f valorio-backend/service-reparation test    # 9 tests
 mvn -f valorio-backend/service-don test           # 13 tests
 mvn -f valorio-backend/service-recyclage test     # 11 tests
 mvn -f valorio-backend/service-auth test          # 20+ tests auth & security
+mvn -f valorio-backend/service-marketplace test   # 10 tests unitaires & IA (100% succès)
 ```
 
 Frontend :
@@ -134,4 +146,6 @@ Les contrats source se trouvent dans `valorio-contracts/` :
 
 - Méthodologie et preuves d'usage de l'IA pour le module Auth : [`docs/auth-ai-methodology.md`](docs/auth-ai-methodology.md)
 - Journal détaillé des prompts, adaptations et anomalies : [`AI_WORKLOG.md`](AI_WORKLOG.md)
+- Fiche de validation individuelle Marketplace : [`FICHE_VALIDATION_ORALE_INDIVIDUELLE.md`](FICHE_VALIDATION_ORALE_INDIVIDUELLE.md)
+- Rapport complet Projet IA Marketplace & Revalorisation : [`docs/RAPPORT_PROJET_IA_MARKETPLACE.md`](docs/RAPPORT_PROJET_IA_MARKETPLACE.md)
 
