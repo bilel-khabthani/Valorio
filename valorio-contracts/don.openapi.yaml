@@ -1,0 +1,410 @@
+openapi: 3.0.3
+info:
+  title: Valorio - API Don
+  description: Contrat du module 6 (Don) - service-don (:8082). Les entités marquées "externe" proviennent d'autres modules : adaptateur STATIQUE par défaut, réel en profil `integ`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8082
+tags:
+  - name: dons
+    description: 6.1 Publication et catalogue
+  - name: matching
+    description: 6.2 Mise en correspondance
+  - name: demandes-don
+    description: 6.3 Distribution
+  - name: entites-externes
+    description: Entités des autres modules (statiques puis dynamiques)
+paths:
+  /api/dons:
+    post:
+      tags: [dons]
+      summary: 6.1 Déclarer un objet disponible au don
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnnonceDonRequest" }
+      responses:
+        "201":
+          description: Annonce publiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnnonceDon" }
+        "400": { $ref: "#/components/responses/Validation" }
+    get:
+      tags: [dons]
+      summary: Catalogue des dons disponibles (filtres)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: ville
+          in: query
+          schema: { type: string }
+        - name: statut
+          in: query
+          schema: { $ref: "#/components/schemas/StatutAnnonceDon" }
+      responses:
+        "200":
+          description: Annonces correspondantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AnnonceDon" }
+  /api/dons/{annonceId}:
+    get:
+      tags: [dons]
+      summary: Détail d'une annonce de don
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+      responses:
+        "200":
+          description: Annonce
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnnonceDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [dons]
+      summary: Modifier une annonce
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnnonceDonRequest" }
+      responses:
+        "200":
+          description: Annonce modifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnnonceDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [dons]
+      summary: Supprimer une annonce
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+      responses:
+        "204": { description: Supprimée }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/dons/{annonceId}/annuler:
+    put:
+      tags: [dons]
+      summary: Annuler logiquement une annonce (PUBLIEE/RESERVEE -> ANNULEE)
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+        - name: donneurId
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Annonce annulée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnnonceDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Annulation interdite (annonce déjà remise ou annulée, ou donneur non autorisé)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/dons/matching:
+    get:
+      tags: [matching]
+      summary: 6.2 Obtenir les dons correspondant à un profil (catégorie, distance)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: latitude
+          in: query
+          schema: { type: number, format: double }
+        - name: longitude
+          in: query
+          schema: { type: number, format: double }
+        - name: rayonKm
+          in: query
+          schema: { type: number, format: double }
+          default: 50
+      responses:
+        "200":
+          description: Correspondances avec score
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    annonce: { $ref: "#/components/schemas/AnnonceDon" }
+                    score: { type: number, format: double }
+                    distanceKm: { type: number, format: double }
+  /api/dons/{annonceId}/demandes:
+    post:
+      tags: [demandes-don]
+      summary: 6.3 Demander un don
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DemandeDonRequest" }
+      responses:
+        "201":
+          description: Demande créée (statut DEMANDE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Annonce non disponible
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+    get:
+      tags: [demandes-don]
+      summary: Lister les demandes reçues sur une annonce
+      parameters:
+        - $ref: "#/components/parameters/AnnonceId"
+      responses:
+        "200":
+          description: Demandes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DemandeDon" }
+  /api/demandes-don/{demandeId}:
+    get:
+      tags: [demandes-don]
+      summary: Consulter une demande de don
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      responses:
+        "200":
+          description: Demande
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/demandes-don/{demandeId}/statut:
+    put:
+      tags: [demandes-don]
+      summary: "6.3 Avancer la distribution (DEMANDE -> ACCEPTEE -> REMISE_ORGANISEE -> CONFIRMEE)"
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [statut]
+              properties:
+                statut: { $ref: "#/components/schemas/StatutDemandeDon" }
+                commentaire: { type: string }
+      responses:
+        "200":
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeDon" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Transition interdite
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/objets:
+    get:
+      tags: [entites-externes]
+      summary: Lister les objets (externe : Module 2)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Objets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Objet" }
+  /api/objets/{objetId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un objet (externe : Module 2)
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Objet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/utilisateurs:
+    get:
+      tags: [entites-externes]
+      summary: Lister les utilisateurs (externe : Module 1)
+      responses:
+        "200":
+          description: Utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Utilisateur" }
+  /api/utilisateurs/{utilisateurId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un utilisateur (externe : Module 1)
+      parameters:
+        - $ref: "#/components/parameters/UtilisateurId"
+      responses:
+        "200":
+          description: Utilisateur
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "404": { $ref: "#/components/responses/NotFound" }
+components:
+  parameters:
+    AnnonceId:
+      name: annonceId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    DemandeId:
+      name: demandeId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ObjetId:
+      name: objetId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    UtilisateurId:
+      name: utilisateurId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+    Validation:
+      description: Requête invalide
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+  schemas:
+    StatutAnnonceDon:
+      type: string
+      enum: [PUBLIEE, RESERVEE, REMISE, ANNULEE]
+    StatutDemandeDon:
+      type: string
+      enum: [DEMANDE, ACCEPTEE, REMISE_ORGANISEE, CONFIRMEE, REFUSEE]
+    Objet:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, categorieId, intitule, etat]
+      properties:
+        id: { type: integer, format: int64 }
+        categorieId: { type: integer, format: int64 }
+        intitule: { type: string }
+        etat: { type: string, enum: [NEUF, BON, ENDOMMAGE, HORS_SERVICE] }
+        ageAnnees: { type: integer }
+        valeurEstimee: { type: number, format: double }
+        ville: { type: string }
+        materiaux: { type: array, items: { type: string } }
+        proprietaireId: { type: integer, format: int64 }
+    Utilisateur:
+      type: object
+      description: Entité externe - Module 1
+      required: [id, nom, ville]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        prenom: { type: string }
+        email: { type: string, format: email }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        scoreReputation: { type: number, format: double }
+    Categorie:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, nom]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+    AnnonceDon:
+      type: object
+      required: [id, objetId, donneurId, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        donneurId: { type: integer, format: int64 }
+        titre: { type: string }
+        description: { type: string }
+        conditions: { type: string }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        statut: { $ref: "#/components/schemas/StatutAnnonceDon" }
+        datePublication: { type: string, format: date-time }
+    AnnonceDonRequest:
+      type: object
+      required: [objetId, donneurId, titre]
+      properties:
+        objetId: { type: integer, format: int64 }
+        donneurId: { type: integer, format: int64 }
+        titre: { type: string }
+        description: { type: string }
+        conditions: { type: string }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+    DemandeDon:
+      type: object
+      required: [id, annonceId, beneficiaireId, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        annonceId: { type: integer, format: int64 }
+        beneficiaireId: { type: integer, format: int64 }
+        message: { type: string }
+        statut: { $ref: "#/components/schemas/StatutDemandeDon" }
+        dateDemande: { type: string, format: date-time }
+        dateConfirmation: { type: string, format: date-time, nullable: true }
+        historique:
+          type: array
+          items:
+            type: object
+            properties:
+              statut: { $ref: "#/components/schemas/StatutDemandeDon" }
+              date: { type: string, format: date-time }
+              commentaire: { type: string }
+    DemandeDonRequest:
+      type: object
+      required: [beneficiaireId]
+      properties:
+        beneficiaireId: { type: integer, format: int64 }
+        message: { type: string }
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

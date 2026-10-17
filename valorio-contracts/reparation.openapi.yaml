@@ -1,0 +1,435 @@
+openapi: 3.0.3
+info:
+  title: Valorio - API Réparation
+  description: Contrat du module 4 (Réparation) - service-reparation (:8081). Les entités marquées "externe" proviennent d'autres modules : adaptateur STATIQUE par défaut, réel en profil `integ`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+tags:
+  - name: reparateurs
+    description: 4.1 Recherche de réparateur
+  - name: demandes
+    description: 4.2 Demande de réparation et 4.3 Suivi
+  - name: devis
+    description: 4.2 Devis
+  - name: entites-externes
+    description: Entités des autres modules (statiques puis dynamiques)
+paths:
+  /api/reparateurs/recherche:
+    get:
+      tags: [reparateurs]
+      summary: Rechercher des réparateurs par catégorie, compétence ou localisation
+      parameters:
+        - name: categorie
+          in: query
+          schema: { type: string }
+        - name: competence
+          in: query
+          schema: { type: string }
+        - name: ville
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Liste des réparateurs correspondants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Reparateur" }
+  /api/reparateurs/{reparateurId}:
+    get:
+      tags: [reparateurs]
+      summary: Consulter la fiche d'un réparateur (compétences, disponibilités, réputation)
+      parameters:
+        - $ref: "#/components/parameters/ReparateurId"
+      responses:
+        "200":
+          description: Fiche du réparateur
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reparateur" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/demandes:
+    post:
+      tags: [demandes]
+      summary: Envoyer une demande de réparation (statut initial DEMANDE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DemandeReparationRequest" }
+      responses:
+        "201":
+          description: Demande créée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeReparation" }
+        "400": { $ref: "#/components/responses/Validation" }
+    get:
+      tags: [demandes]
+      summary: Lister les demandes (suivi utilisateur / espace réparateur)
+      parameters:
+        - name: statut
+          in: query
+          schema: { $ref: "#/components/schemas/StatutDemande" }
+        - name: utilisateurId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: reparateurId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Liste des demandes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DemandeReparation" }
+  /api/demandes/{demandeId}:
+    get:
+      tags: [demandes]
+      summary: Consulter une demande et son historique de statuts
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      responses:
+        "200":
+          description: Demande
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeReparation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/demandes/{demandeId}/statut:
+    put:
+      tags: [demandes, devis]
+      summary: "4.3 Transition de statut (workflow : DEMANDE -> ACCEPTEE -> DIAGNOSTIC -> EN_REPARATION -> TERMINEE -> LIVREE)"
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TransitionStatutRequest" }
+      responses:
+        "200":
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeReparation" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Transition interdite par le workflow
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/demandes/{demandeId}/intervention:
+    put:
+      tags: [demandes]
+      summary: "4.2 Choisir une date et confirmer l'intervention (statut >= ACCEPTEE)"
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlanifierInterventionRequest" }
+      responses:
+        "200":
+          description: Intervention planifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeReparation" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Transition interdite (demande non acceptée ou déjà livrée)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/demandes/{demandeId}/devis:
+    post:
+      tags: [devis]
+      summary: Fournir un devis par le réparateur
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DevisRequest" }
+      responses:
+        "201":
+          description: Devis créé
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devis" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    get:
+      tags: [devis]
+      summary: Consulter le devis d'une demande
+      parameters:
+        - $ref: "#/components/parameters/DemandeId"
+      responses:
+        "200":
+          description: Devis
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devis" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/devis/{devisId}/reponse:
+    put:
+      tags: [devis]
+      summary: Accepter ou refuser un devis
+      parameters:
+        - name: devisId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accepte]
+              properties:
+                accepte:
+                  type: boolean
+                  description: true pour accepter le devis, false pour le refuser
+      responses:
+        "200":
+          description: Réponse enregistrée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devis" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/objets:
+    get:
+      tags: [entites-externes]
+      summary: Lister les objets (externe : Module 2)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Objets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Objet" }
+  /api/objets/{objetId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un objet (externe : Module 2)
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Objet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/utilisateurs:
+    get:
+      tags: [entites-externes]
+      summary: Lister les utilisateurs (externe : Module 1)
+      responses:
+        "200":
+          description: Utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Utilisateur" }
+  /api/utilisateurs/{utilisateurId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un utilisateur (externe : Module 1)
+      parameters:
+        - $ref: "#/components/parameters/UtilisateurId"
+      responses:
+        "200":
+          description: Utilisateur
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/categories/{categorieId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter une catégorie (externe : Module 2)
+      parameters:
+        - $ref: "#/components/parameters/CategorieId"
+      responses:
+        "200":
+          description: Catégorie
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Categorie" }
+        "404": { $ref: "#/components/responses/NotFound" }
+components:
+  parameters:
+    DemandeId:
+      name: demandeId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ReparateurId:
+      name: reparateurId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ObjetId:
+      name: objetId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    UtilisateurId:
+      name: utilisateurId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CategorieId:
+      name: categorieId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+    Validation:
+      description: Requête invalide
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+  schemas:
+    StatutDemande:
+      type: string
+      enum: [DEMANDE, ACCEPTEE, DIAGNOSTIC, EN_REPARATION, TERMINEE, LIVREE]
+    Objet:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, categorieId, intitule, etat]
+      properties:
+        id: { type: integer, format: int64 }
+        categorieId: { type: integer, format: int64 }
+        intitule: { type: string }
+        etat: { type: string, enum: [NEUF, BON, ENDOMMAGE, HORS_SERVICE] }
+        ageAnnees: { type: integer }
+        valeurEstimee: { type: number, format: double }
+        ville: { type: string }
+        materiaux: { type: array, items: { type: string } }
+        proprietaireId: { type: integer, format: int64 }
+    Utilisateur:
+      type: object
+      description: Entité externe - Module 1
+      required: [id, nom, ville]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        prenom: { type: string }
+        email: { type: string, format: email }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        scoreReputation: { type: number, format: double }
+    Categorie:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, nom]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+    Reparateur:
+      type: object
+      required: [id, utilisateurId, competences]
+      properties:
+        id: { type: integer, format: int64 }
+        utilisateurId: { type: integer, format: int64 }
+        competences:
+          type: array
+          items: { type: string }
+        categories:
+          type: array
+          items: { type: string }
+        ville: { type: string }
+        disponibilite: { type: boolean }
+        noteMoyenne: { type: number, format: double }
+        nbAvis: { type: integer }
+    DemandeReparation:
+      type: object
+      required: [id, objetId, utilisateurId, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        utilisateurId: { type: integer, format: int64 }
+        reparateurId: { type: integer, format: int64, nullable: true }
+        descriptionPanne: { type: string }
+        statut: { $ref: "#/components/schemas/StatutDemande" }
+        dateIntervention: { type: string, format: date-time, nullable: true }
+        dateCreation: { type: string, format: date-time }
+        dateMaj: { type: string, format: date-time }
+        historiqueStatuts:
+          type: array
+          items:
+            type: object
+            properties:
+              statut: { $ref: "#/components/schemas/StatutDemande" }
+              date: { type: string, format: date-time }
+              commentaire: { type: string }
+    DemandeReparationRequest:
+      type: object
+      required: [objetId, utilisateurId, descriptionPanne]
+      properties:
+        objetId: { type: integer, format: int64 }
+        utilisateurId: { type: integer, format: int64 }
+        descriptionPanne: { type: string }
+    TransitionStatutRequest:
+      type: object
+      required: [statut]
+      properties:
+        statut: { $ref: "#/components/schemas/StatutDemande" }
+        commentaire: { type: string }
+    PlanifierInterventionRequest:
+      type: object
+      required: [dateIntervention]
+      properties:
+        dateIntervention: { type: string, format: date-time }
+    Devis:
+      type: object
+      required: [id, demandeId, montant, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        demandeId: { type: integer, format: int64 }
+        montant: { type: number, format: double }
+        delaiJours: { type: integer }
+        commentaire: { type: string }
+        statut: { type: string, enum: [EN_ATTENTE, ACCEPTE, REFUSE] }
+        dateCreation: { type: string, format: date-time }
+    DevisRequest:
+      type: object
+      required: [montant]
+      properties:
+        montant: { type: number, format: double }
+        delaiJours: { type: integer }
+        commentaire: { type: string }
+        reparateurId:
+          type: integer
+          format: int64
+          description: Réparateur assigné à la demande lors de la création du devis
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

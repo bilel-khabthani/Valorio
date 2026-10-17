@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "nom": "Ben Salah",
+    "prenom": "Amine",
+    "email": "amine.bensalah@example.com",
+    "ville": "Tunis",
+    "latitude": 36.8065,
+    "longitude": 10.1815,
+    "scoreReputation": 4.5
+  },
+  {
+    "id": 2,
+    "nom": "Trabelsi",
+    "prenom": "Sara",
+    "email": "sara.trabelsi@example.com",
+    "ville": "Sfax",
+    "latitude": 34.7406,
+    "longitude": 10.76,
+    "scoreReputation": 4.0
+  },
+  {
+    "id": 3,
+    "nom": "Gharbi",
+    "prenom": "Karim",
+    "email": "karim.gharbi@example.com",
+    "ville": "Sousse",
+    "latitude": 35.8256,
+    "longitude": 10.636,
+    "scoreReputation": 4.8
+  }
+]

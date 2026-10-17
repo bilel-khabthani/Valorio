@@ -1,0 +1,5 @@
+com\valorio\don\util\GeoTest.class
+com\valorio\don\domain\StatutAnnonceDonTest.class
+com\valorio\don\domain\StatutDemandeDonTest.class
+com\valorio\don\api\DonControllerTest.class
+com\valorio\don\external\StaticObjetAdapterTest.class
