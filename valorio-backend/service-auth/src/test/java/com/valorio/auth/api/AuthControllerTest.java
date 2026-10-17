@@ -78,6 +78,37 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("Endpoint /register refuse une requête avec email manquant ou invalide")
+    void registerRefuseEmailInvalide() throws Exception {
+        RegisterRequest req = new RegisterRequest(
+                "Ben Salah", "Amine", "not-an-email", "Secret123456!", "Secret123456!", true
+        );
+
+        mvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation échouée"));
+    }
+
+    @Test
+    @DisplayName("Endpoint /register renvoie 409 Conflict si l'email existe déjà")
+    void registerConflitEmailExistant() throws Exception {
+        RegisterRequest req = new RegisterRequest(
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", true
+        );
+
+        given(authService.register(any(RegisterRequest.class), any()))
+                .willThrow(new IllegalStateException("Un compte avec cette adresse email existe déjà."));
+
+        mvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.title").value("Opération impossible"));
+    }
+
+    @Test
     @DisplayName("Endpoint /login valide les identifiants")
     void loginSucces() throws Exception {
         LoginRequest req = new LoginRequest("amine@valorio.tn", "Secret123456!", false);
@@ -91,6 +122,33 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("login_token_abc"));
+    }
+
+    @Test
+    @DisplayName("Endpoint /login renvoie 401 en cas d'identifiants incorrects")
+    void loginRejetteMauvaisIdentifiants() throws Exception {
+        LoginRequest req = new LoginRequest("amine@valorio.tn", "MauvaisPassword1!", false);
+
+        given(authService.login(any(LoginRequest.class), any()))
+                .willThrow(new org.springframework.security.authentication.BadCredentialsException("Identifiants invalides"));
+
+        mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.title").value("Authentification échouée"));
+    }
+
+    @Test
+    @DisplayName("Endpoint /login refuse une requête sans mot de passe")
+    void loginRefuseMotDePasseVide() throws Exception {
+        LoginRequest req = new LoginRequest("amine@valorio.tn", "", false);
+
+        mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation échouée"));
     }
 
     @Test

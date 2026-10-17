@@ -1,15 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Valorio - API Authentification & IA
-  description: Contrat des modules Authentification (Module 1), AI Code Assistant et AI Testing & Quality Assurance - service-auth (:8084).
+  title: Valorio - API Authentification
+  description: Contrat du module Authentification & Sécurité (Module 1) - service-auth (:8084).
   version: 1.0.0
 servers:
   - url: http://localhost:8084
 tags:
   - name: auth
-    description: Inscription, Connexion, Rafraîchissement JWT et gestion de session
-  - name: ai
-    description: Assistance au développement, génération de tests et audit de qualité logiciel
+    description: Inscription, Connexion, Rafraîchissement JWT, Récupération de mot de passe et gestion de session
 paths:
   /api/auth/register:
     post:
@@ -91,69 +89,85 @@ paths:
         "401":
           description: Non authentifié
 
-  /api/ai/code-generation:
+  /api/auth/forgot-password:
     post:
-      tags: [ai]
-      summary: Génération de code assistée par IA
+      tags: [auth]
+      summary: Demande de lien de réinitialisation de mot de passe
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CodeGenerationRequest'
+              $ref: '#/components/schemas/ForgotPasswordRequest'
       responses:
         "200":
-          description: Code généré et suggestions
+          description: Email expédié si le compte existe
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CodeGenerationResponse'
+                $ref: '#/components/schemas/MessageResponse'
 
-  /api/ai/tests/generate:
+  /api/auth/reset-password:
     post:
-      tags: [ai]
-      summary: Génération de tests unitaires et détection des cas limites
+      tags: [auth]
+      summary: Réinitialisation du mot de passe par jeton
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestGenerationRequest'
+              $ref: '#/components/schemas/ResetPasswordRequest'
       responses:
         "200":
-          description: Suite de tests générée
+          description: Mot de passe mis à jour avec succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestGenerationResponse'
+                $ref: '#/components/schemas/MessageResponse'
+        "400":
+          description: Jeton invalide ou expiré
 
-  /api/ai/code-review:
+  /api/auth/verify-email:
     post:
-      tags: [ai]
-      summary: Revue critique de code et détection de défauts
+      tags: [auth]
+      summary: Confirmation de l'adresse email par jeton
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CodeReviewRequest'
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
       responses:
         "200":
-          description: Rapport de revue de code
+          description: Email vérifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
 
-  /api/ai/quality-report:
+  /api/auth/resend-verification:
     post:
-      tags: [ai]
-      summary: Rapport d'assurance qualité unifiant analyse statique et IA
+      tags: [auth]
+      summary: Réexpédition de l'email de confirmation
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QualityReportRequest'
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
       responses:
         "200":
-          description: Rapport qualité détaillé
+          description: Email réexpédié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
 
 components:
   securitySchemes:
@@ -202,57 +216,23 @@ components:
         emailVerifie: { type: boolean }
         actif: { type: boolean }
 
-    CodeGenerationRequest:
+    ForgotPasswordRequest:
       type: object
-      required: [task, language]
+      required: [email]
       properties:
-        task: { type: string }
-        language: { type: string }
-        context: { type: string }
+        email: { type: string, format: email }
 
-    CodeGenerationResponse:
+    ResetPasswordRequest:
       type: object
+      required: [token, newPassword, confirmPassword]
       properties:
-        code: { type: string }
-        language: { type: string }
-        explanation: { type: string }
-        assumptions: { type: array, items: { type: string } }
-        potentialRisks: { type: array, items: { type: string } }
-        suggestedImprovements: { type: array, items: { type: string } }
+        token: { type: string }
+        newPassword: { type: string, minLength: 12 }
+        confirmPassword: { type: string }
 
-    TestGenerationRequest:
-      type: object
-      required: [code, language]
-      properties:
-        code: { type: string }
-        language: { type: string }
-        framework: { type: string }
-        testType: { type: string }
-        context: { type: string }
-
-    TestGenerationResponse:
+    MessageResponse:
       type: object
       properties:
-        generatedTests: { type: string }
-        framework: { type: string }
-        explanation: { type: string }
-        testCasesCovered: { type: array, items: { type: string } }
-        edgeCases: { type: array, items: { type: string } }
-        suggestions: { type: array, items: { type: string } }
-
-    CodeReviewRequest:
-      type: object
-      required: [code, language]
-      properties:
-        code: { type: string }
-        language: { type: string }
-        context: { type: string }
-
-    QualityReportRequest:
-      type: object
-      required: [code, language]
-      properties:
-        code: { type: string }
-        language: { type: string }
-        includeStaticAnalysis: { type: boolean }
-        includeAiReview: { type: boolean }
+        message: { type: string }
+        success: { type: boolean }
+        devLink: { type: string }

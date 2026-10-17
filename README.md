@@ -61,7 +61,7 @@ Documentation interactive (Swagger UI OpenAPI) :
 - Réparation : http://localhost:8081/swagger-ui.html
 - Don : http://localhost:8082/swagger-ui.html
 - Recyclage : http://localhost:8083/swagger-ui.html
-- Authentification & IA : http://localhost:8084/swagger-ui.html
+- Authentification : http://localhost:8084/swagger-ui.html
 
 ## 3. Frontend
 
@@ -74,23 +74,15 @@ Le dev-server redirige (`proxy.conf.json`) :
 - `/rep/api` → 8081
 - `/don/api` → 8082
 - `/rec/api` → 8083
-- `/api/auth` et `/api/ai` → 8084
+- `/api/auth` → 8084
 
 ## Parcours fonctionnels
 
 - **Authentification & Gestion de compte** :
   - Connexion (`/login`) : JWT access token court en mémoire, refresh token rotatif en cookie `HttpOnly` `SameSite=Strict`.
   - Inscription (`/register`) : jauge dynamique de robustesse de mot de passe (8+ car., majuscule, minuscule, chiffre, symbole `@$!%*?#`), vérification par token.
-  - Mot de passe oublié & réinitialisation (`/forgot-password`, `/reset-password`).
+  - Mot de passe oublié & réinitialisation (`/forgot-password`, `/reset-password`) avec envoi réel d'emails asynchrones via Gmail SMTP (`lemonselmi@gmail.com`).
   - Validation email (`/verify-email`).
-- **Assistant IA de Développement** (`/ai/assistant`) :
-  - Génération de code multilangue (Java, TypeScript, SQL, Python) avec explication, analyse des risques et pistes d'optimisation.
-  - Sanitization automatique des secrets (mots de passe, clés API, tokens Bearer) avant traitement.
-  - Bascule transparente entre Mock sécurisé (local zéro-dépendance) et OpenAI/LLM tiers via configuration.
-- **Assurance Qualité & Tests IA** (`/ai/quality`) :
-  - Génération de tests unitaires (JUnit 5, Jasmine/Karma) ciblés sur le code source.
-  - Revue de code statique déterministe (injections SQL, secrets en dur, exceptions avalées) combinée aux prédictions heuristiques de l'IA.
-  - Rapport d'audit qualité avec score de maintenabilité, distribution de sévérité (CRITICAL, WARNING, INFO) et export JSON.
 - **Réparation** (`/reparation`) : créer une demande, rechercher un réparateur, proposer/accepter un devis, planifier une date d'intervention, suivre le workflow `DEMANDE → ACCEPTEE → DIAGNOSTIC → EN_REPARATION → TERMINEE → LIVREE`.
 - **Don** (`/don`) : publier un objet (description, conditions, coordonnées), matching des bénéficiaires par distance, workflow de demande `DEMANDE → ACCEPTEE → REMISE_ORGANISEE → CONFIRMEE` (ou `REFUSEE`), annulation logique d'annonce.
 - **Recyclage** (`/recyclage`) : analyser la recyclabilité d'un objet, rechercher un centre par matériau/distance, demander une collecte et suivre `DEMANDE → PLANIFIEE → EN_COURS → RECUE` (ou `ANNULEE`).
@@ -103,18 +95,18 @@ L'application intègre une double gestion de session :
 
 ## Tests automatisés
 
-Exécuter la suite complète de tests (103 tests automatisés, tous au vert) :
+Exécuter la suite complète de tests (backend et frontend) :
 
-Backend (56 tests) :
+Backend :
 
 ```powershell
 mvn -f valorio-backend/service-reparation test    # 9 tests
 mvn -f valorio-backend/service-don test           # 13 tests
 mvn -f valorio-backend/service-recyclage test     # 11 tests
-mvn -f valorio-backend/service-auth test          # 23 tests
+mvn -f valorio-backend/service-auth test          # 20+ tests auth & security
 ```
 
-Frontend (47 specs sur 8 projets) :
+Frontend :
 
 ```powershell
 cd valorio-frontend
@@ -136,8 +128,10 @@ Les contrats source se trouvent dans `valorio-contracts/` :
 - `reparation.openapi.yaml`
 - `don.openapi.yaml`
 - `recyclage.openapi.yaml`
-- `auth.openapi.yaml` (Authentification et IA)
+- `auth.openapi.yaml` (Authentification)
 
-## Journal d'usage de l'IA
+## Dossier Académique IA (Génération de code, Tests & Qualité)
 
-Voir [`AI_WORKLOG.md`](AI_WORKLOG.md) (phases S0, S1, S2, S3, S4, S5).
+- Méthodologie et preuves d'usage de l'IA pour le module Auth : [`docs/auth-ai-methodology.md`](docs/auth-ai-methodology.md)
+- Journal détaillé des prompts, adaptations et anomalies : [`AI_WORKLOG.md`](AI_WORKLOG.md)
+

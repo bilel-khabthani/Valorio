@@ -45,19 +45,6 @@ export const routes: Routes = [
         (m) => m.VerifyEmailComponent
       ),
   },
-  {
-    path: 'ai/assistant',
-    loadComponent: () =>
-      import('./pages/ai/ai-assistant/ai-assistant.component').then(
-        (m) => m.AiAssistantComponent
-      ),
-  },
-  {
-    path: 'ai/quality',
-    loadComponent: () =>
-      import('./pages/ai/ai-quality/ai-quality.component').then(
-        (m) => m.AiQualityComponent
-      ),
-  },
   { path: '**', redirectTo: 'reparation' },
 ];
+

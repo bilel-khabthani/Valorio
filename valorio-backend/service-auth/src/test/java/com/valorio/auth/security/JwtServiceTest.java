@@ -72,4 +72,13 @@ class JwtServiceTest {
 
         assertThat(jwtService.validateToken(expiredToken)).isFalse();
     }
+
+    @Test
+    @DisplayName("Rejette un jeton malformé (format non-JWT ou chaîne aléatoire)")
+    void rejetteTokenMalforme() {
+        assertThat(jwtService.validateToken("ceci-n-est-pas-un-jwt")).isFalse();
+        assertThat(jwtService.validateToken("header.sansSignature")).isFalse();
+        assertThat(jwtService.validateToken(null)).isFalse();
+        assertThat(jwtService.validateToken("")).isFalse();
+    }
 }

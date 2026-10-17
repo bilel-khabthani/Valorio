@@ -167,3 +167,20 @@ Invoke-RestMethod http://localhost:4200/rep/api/objets/1   # via proxy Angular
 - Sécurité renforcée : Assainissement automatique par regex de tous les secrets avant traitement et limitation stricte de la taille des données soumises.
 - Interface utilisateur unifiée : Deux nouveaux espaces de travail IA intégrés au dashboard Angular 20, avec prévisualisation de code, filtres de sévérité, jauges de score et export de rapports.
 - Qualité globale validée : **103 tests automatisés réussis** sur l'ensemble de la solution (56 backend + 47 frontend), conformité OpenAPI et documentation complète.
+
+---
+
+## Phase S6 — Recadrage Métier Auth & Intégration Pédagogique IA
+
+| Date | Phase | Tâche | Outil | Technique IA | Prompt (résumé) | Résultat IA | Adaptation humaine | Tests générés | Anomalie détectée → correctif | Métrique |
+| ---- | ----- | ----- | ----- | ------------ | --------------- | ----------- | ------------------ | ------------- | ----------------------------- | -------- |
+| 2026-10-17 | S6 | UX / Recadrage | Nettoyage des pages UI IA | Antigravity AI | Nettoyage architectural ciblé | « Supprime les pages `/ai/assistant` et `/ai/quality` du frontend ValorIO car ce sont des outils de dev. Préserve l'ergonomie objet trouvé et concentre l'IA sur le module Auth. » | Retrait propre des routes, composants, liens de navigation et services UI dédiés dans `valorio-frontend` | Conservation des capacités d'analyse/sanitization en backend et maintien des écrans Auth indispensables (login, register, forgot-pwd, reset-pwd, verify-email) | Vérification de non-régression via build Angular et specs Jasmine | Disparition des routes orphelines et suppression des imports morts dans `public-api.ts` | 6 fichiers supprimés, build prod vert |
+| 2026-10-17 | S6 | Backend Auth | Renforcement des tests & sécurité | Antigravity AI | TDD & Ingénierie de sécurité | « Génère les suites de tests pour : mot de passe incorrect, format invalide, email dupliqué, JWT altéré/expiré/malformé, hachage BCrypt 12 rounds, accès protégé 401 et rôles RBAC » | `PasswordSecurityTest.java`, `ProtectedEndpointsSecurityTest.java`, `RoleAuthorizationTest.java`, complétion de `AuthControllerTest.java` et `JwtServiceTest.java` | Réglage de l'encodage UTF-8 dans `SecurityConfig` pour MockMvc sous Windows | **35 tests backend passants** (`service-auth`) avec couverture exhaustive des critères enseignants | Encapsulation de l'envoi SMTP Gmail dans un exécuteur asynchrone non-bloquant (`CompletableFuture.runAsync`) | 35 tests backend verts, 0 échec |
+| 2026-10-17 | S6 | Documentation | Dossier méthodologique académique | Antigravity AI | Synthèse d'ingénierie logicielle | « Rédige `docs/auth-ai-methodology.md` détaillant le modèle IA, les tâches, les exemples de code, les revues manuelles, les tests et anomalies détectées » | Rédaction complète de `docs/auth-ai-methodology.md` structuré selon les exigences du professeur | Intégration des commandes réelles et preuves d'exécution (Maven, Karma, Edge Headless) | Documentation technique et pédagogique complète | — | 1 rapport académique Markdown |
+
+### Bilan S6
+
+- **Interface utilisateur épurée et conforme** : Suppression complète des pages artificielles « Assistant IA » et « Qualité et tests » du frontend. L'application ValorIO conserve son identité métier de gestion d'objets perdus/trouvés et de réemploi.
+- **Exigences pédagogiques 1 & 2 intégralement satisfaites** : Démonstration concrète de l'usage de l'IA dans l'architecture, la génération, l'adaptation et la sécurisation du module Auth (JWT, BCrypt 12, Signals réactifs, SMTP asynchrone), validée par 35 tests automatisés JUnit 5 et 23 tests Jasmine.
+- **Documentation académique** : Disponible dans [docs/auth-ai-methodology.md](docs/auth-ai-methodology.md).
+

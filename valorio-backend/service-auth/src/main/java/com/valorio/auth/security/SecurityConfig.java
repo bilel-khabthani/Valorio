@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("""
                                     {"type":"about:blank","title":"Non authentifié","status":401,"detail":"Accès refusé. Veuillez vous connecter.","instance":"%s"}
@@ -58,6 +59,7 @@ public class SecurityConfig {
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.getWriter().write("""
                                     {"type":"about:blank","title":"Accès interdit","status":403,"detail":"Vous n'avez pas les permissions nécessaires.","instance":"%s"}
@@ -81,9 +83,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/actuator/**"
                         ).permitAll()
-                        // Permet aux outils locaux et IA de fonctionner en dev tout en supportant les rôles
+                        // Permet aux requêtes préliminaires CORS de passer
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/ai/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
