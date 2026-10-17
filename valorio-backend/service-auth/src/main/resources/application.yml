@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: service-auth
+  datasource:
+    url: jdbc:postgresql://localhost:5432/valorio?currentSchema=auth
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:bilel}
+  flyway:
+    enabled: true
+    schemas: auth
+    default-schema: auth
+    create-schemas: true
+    baseline-on-migrate: true
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:lemonselmi@gmail.com}
+    password: ${SMTP_PASS:uqkhmjtbadwnvaiu}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+
+server:
+  port: 8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+valorio:
+  jwt:
+    secret: ${JWT_SECRET:valorio-super-secret-jwt-signing-key-minimum-32-chars!}
+    access-token-expiration-minutes: ${JWT_EXPIRATION_MINUTES:15}
+    refresh-token-expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:7}
+  security:
+    cookie-secure: ${COOKIE_SECURE:false}
+    cookie-same-site: ${COOKIE_SAME_SITE:Lax}
+  ai:
+    provider: ${AI_PROVIDER:mock}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:gpt-4o-mini}
+    base-url: ${AI_BASE_URL:https://api.openai.com/v1}
+    request-timeout-ms: ${AI_REQUEST_TIMEOUT:15000}

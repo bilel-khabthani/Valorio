@@ -1,35 +1,79 @@
 <header class="app-bar">
   <div class="app-bar-inner">
     <a class="brand" routerLink="/">Val<span>orio</span></a>
+
     <nav class="nav">
       <a routerLink="/reparation" routerLinkActive="active">Réparation</a>
       <a routerLink="/don" routerLinkActive="active">Don</a>
       <a routerLink="/recyclage" routerLinkActive="active">Recyclage</a>
     </nav>
-    <div class="session">
-      <label class="session-field">
-        <span>Rôle</span>
-        <select name="roleSession" [(ngModel)]="roleChoisi" (ngModelChange)="onRoleChange()">
-          @for (r of roles; track r) {
-            <option [value]="r">{{ libelleRole[r] }}</option>
-          }
-        </select>
-      </label>
-      @if (roleChoisi !== 'ADMIN') {
+
+
+    <div class="header-right">
+      <!-- Session Authentifiée Réelle -->
+      @if (auth.isAuthenticated()) {
+        <div class="user-profile">
+          <div class="user-avatar" [title]="auth.currentUser()?.email || ''">
+            {{ (auth.userName() || 'U').charAt(0).toUpperCase() }}
+          </div>
+          <div class="user-meta">
+            <span class="user-name">{{ auth.userName() }}</span>
+            <span class="user-role-badge" [class.admin]="auth.isAdmin()">
+              {{ auth.currentUser()?.role }}
+            </span>
+          </div>
+          <button type="button" class="btn-logout" (click)="onLogout()" title="Déconnexion">
+            Déconnexion
+          </button>
+        </div>
+      } @else {
+        <div class="auth-links">
+          <a routerLink="/login" class="btn-nav-login" routerLinkActive="active">Connexion</a>
+          <a routerLink="/register" class="btn-nav-register" routerLinkActive="active">Inscription</a>
+        </div>
+      }
+
+      <!-- Bouton bascule sélecteur d'acteurs de simulation métier -->
+      <button
+        type="button"
+        class="btn-simulation-toggle"
+        (click)="toggleSimulation()"
+        title="Ouvrir le sélecteur d'acteurs simulés (Module 4, 6, 7)"
+      >
+        🎭 Acteur : {{ libelleRole[roleChoisi] }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Barre secondaire rétractable pour la simulation d'acteurs métier -->
+  @if (afficherSelecteurSimulation()) {
+    <div class="simulation-bar">
+      <div class="simulation-bar-inner">
+        <span class="simulation-title">Simulation Acteurs Métier :</span>
         <label class="session-field">
-          <span>Identité</span>
-          <select name="identiteSession" [(ngModel)]="identiteChoisie" (ngModelChange)="onIdentiteChange()">
-            @for (o of optionsIdentite(); track o.valeur) {
-              <option [ngValue]="o.valeur">{{ o.label }}</option>
+          <span>Rôle</span>
+          <select name="roleSession" [(ngModel)]="roleChoisi" (ngModelChange)="onRoleChange()">
+            @for (r of roles; track r) {
+              <option [value]="r">{{ libelleRole[r] }}</option>
             }
           </select>
         </label>
-      }
-      <span class="session-badge" title="Session simulée (Module 1 non implémenté)">
-        {{ libelleRole[roleChoisi] }} · {{ session.label() }}
-      </span>
+        @if (roleChoisi !== 'ADMIN') {
+          <label class="session-field">
+            <span>Identité</span>
+            <select name="identiteSession" [(ngModel)]="identiteChoisie" (ngModelChange)="onIdentiteChange()">
+              @for (o of optionsIdentite(); track o.valeur) {
+                <option [ngValue]="o.valeur">{{ o.label }}</option>
+              }
+            </select>
+          </label>
+        }
+        <span class="session-badge">
+          Active : {{ libelleRole[roleChoisi] }} · {{ session.label() }}
+        </span>
+      </div>
     </div>
-  </div>
+  }
 </header>
 
 <main>

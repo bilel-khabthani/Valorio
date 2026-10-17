@@ -1,0 +1,76 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-badge">Valorio Sécurité</div>
+      <h1>Connexion</h1>
+      <p>Accédez à votre espace ValorIO sécurisé</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-error" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form class="auth-form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="email">Adresse email</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="votre.email@exemple.com"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label for="password">Mot de passe</label>
+          <a routerLink="/forgot-password" class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+        <div class="input-password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="••••••••••••"
+            required
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="btn-toggle-pwd"
+            (click)="toggleShowPassword()"
+            [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+          >
+            {{ showPassword() ? 'Masquer' : 'Afficher' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="remember-row">
+        <label class="checkbox-label">
+          <input type="checkbox" name="rememberMe" [(ngModel)]="rememberMe" />
+          <span>Se souvenir de moi</span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner"></span> Connexion en cours...
+        } @else {
+          Se connecter
+        }
+      </button>
+
+      <div class="auth-footer">
+        <span>Pas encore de compte ?</span>
+        <a routerLink="/register" class="link-register">Créer un compte</a>
+      </div>
+    </form>
+  </div>
+</div>

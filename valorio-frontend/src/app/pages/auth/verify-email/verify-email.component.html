@@ -1,0 +1,52 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-badge">Vérification</div>
+      <h1>Validation d'adresse email</h1>
+      <p>Confirmez votre compte ValorIO pour activer toutes les fonctionnalités</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-error" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success" role="alert">
+        {{ successMessage() }}
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="spinner-large"></span>
+        <p>Vérification du jeton en cours...</p>
+      </div>
+    } @else if (successMessage()) {
+      <div class="success-actions">
+        <a routerLink="/login" class="btn btn-primary btn-block">Se connecter</a>
+      </div>
+    } @else {
+      <div class="resend-section">
+        <p class="resend-info">Le lien n'a pas fonctionné ou a expiré ? Vous pouvez en demander un nouveau :</p>
+        <div class="form-group">
+          <label for="resend-email">Votre adresse email</label>
+          <input
+            id="resend-email"
+            type="email"
+            [(ngModel)]="resendEmail"
+            placeholder="votre.email@exemple.com"
+          />
+        </div>
+        <button type="button" class="btn btn-secondary btn-block" (click)="onResend()" [disabled]="loading()">
+          Renvoyer le lien de confirmation
+        </button>
+      </div>
+    }
+
+    <div class="auth-footer">
+      <a routerLink="/" class="link-register">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>

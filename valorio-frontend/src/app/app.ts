@@ -1,9 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ReparationApiService } from '@valorio/api-reparation';
 import { RecyclageApiService } from '@valorio/api-recyclage';
 import {
+  AuthService,
   CentreRecyclage,
   IDENTITE_ADMIN,
   LIBELLES_ROLE,
@@ -26,13 +28,15 @@ interface OptionIdentite {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule],
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App implements OnInit {
   protected readonly title = signal('Valorio');
 
+  protected readonly auth = inject(AuthService);
   protected readonly session = inject(SessionService);
   private readonly apiReparation = inject(ReparationApiService);
   private readonly apiRecyclage = inject(RecyclageApiService);
@@ -46,6 +50,7 @@ export class App implements OnInit {
 
   protected roleChoisi: RoleActeur = this.session.role();
   protected identiteChoisie: number | null = null;
+  protected afficherSelecteurSimulation = signal(false);
 
   ngOnInit(): void {
     this.apiReparation.listerUtilisateurs().subscribe({
@@ -73,6 +78,14 @@ export class App implements OnInit {
       this.session.identite().reparateurId ??
       this.session.identite().centreId ??
       null;
+  }
+
+  toggleSimulation(): void {
+    this.afficherSelecteurSimulation.update((v) => !v);
+  }
+
+  onLogout(): void {
+    this.auth.logout().subscribe();
   }
 
   optionsIdentite(): OptionIdentite[] {
