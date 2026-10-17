@@ -1,0 +1,158 @@
+<div class="item-detail">
+  @if (loading) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  }
+
+  @if (error && !item) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (successMessage) {
+    <div class="alert alert-success">{{ successMessage }}</div>
+  }
+
+  @if (item) {
+    <div class="page-header">
+      <a routerLink="/items" class="back-link">← Retour à la liste</a>
+      <div class="header-actions">
+        <a [routerLink]="['/items', item.id, 'edit']" class="btn btn-warning">✏️ Modifier</a>
+        @if (item.status !== 'RETURNED') {
+          <button class="btn btn-success" (click)="confirmReturn()">✅ Confirmer restitution</button>
+        }
+        <button class="btn btn-danger" (click)="deleteItem()">🗑️ Supprimer</button>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Photo + infos principales -->
+      <div class="detail-main">
+        <div class="item-photo-box">
+          @if (item.photoUrl) {
+            <img [src]="item.photoUrl" [alt]="item.title" />
+          } @else {
+            <div class="no-photo">📷</div>
+          }
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-badges">
+            <span [class]="'badge ' + getTypeClass(item.type)">{{ getTypeLabel(item.type) }}</span>
+            <span [class]="'badge ' + getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
+          </div>
+
+          <h1>{{ item.title }}</h1>
+
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="field-label">Catégorie</span>
+              <span class="field-value">🏷️ {{ item.category }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="field-label">Localisation</span>
+              <span class="field-value">📍 {{ item.location }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="field-label">Date</span>
+              <span class="field-value">📅 {{ item.date }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="field-label">Déclaré le</span>
+              <span class="field-value">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            @if (item.reporterName) {
+              <div class="detail-field">
+                <span class="field-label">Déclarant</span>
+                <span class="field-value">👤 {{ item.reporterName }}</span>
+              </div>
+            }
+            @if (item.reporterContact) {
+              <div class="detail-field">
+                <span class="field-label">Contact</span>
+                <span class="field-value">📞 {{ item.reporterContact }}</span>
+              </div>
+            }
+          </div>
+
+          @if (item.description) {
+            <div class="detail-desc">
+              <span class="field-label">Description</span>
+              <p>{{ item.description }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Réclamations -->
+      <div class="claims-section">
+        <div class="claims-header">
+          <h2>Réclamations ({{ claims.length }})</h2>
+          @if (item.status !== 'RETURNED') {
+            <button class="btn btn-primary" (click)="showClaimForm = !showClaimForm">
+              {{ showClaimForm ? 'Annuler' : '+ Soumettre une réclamation' }}
+            </button>
+          }
+        </div>
+
+        <!-- Formulaire de réclamation -->
+        @if (showClaimForm) {
+          <div class="claim-form">
+            <h3>Nouvelle réclamation</h3>
+            @if (claimError) {
+              <div class="alert alert-error">{{ claimError }}</div>
+            }
+            <div class="form-group">
+              <label>Votre nom <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="claimForm.claimantName" placeholder="Prénom Nom" />
+            </div>
+            <div class="form-group">
+              <label>Contact <span class="required">*</span></label>
+              <input type="text" [(ngModel)]="claimForm.claimantContact" placeholder="email ou téléphone" />
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="claimForm.description" rows="3"
+                        placeholder="Décrivez pourquoi vous pensez que cet objet vous appartient..."></textarea>
+            </div>
+            <button class="btn btn-primary" (click)="submitClaim()" [disabled]="savingClaim">
+              @if (savingClaim) { Envoi en cours... } @else { Soumettre la réclamation }
+            </button>
+          </div>
+        }
+
+        <!-- Liste des réclamations -->
+        @if (claims.length === 0) {
+          <p class="no-claims">Aucune réclamation pour cet objet.</p>
+        }
+
+        @for (claim of claims; track claim.id) {
+          <div class="claim-card">
+            <div class="claim-header">
+              <div class="claim-person">
+                <strong>{{ claim.claimantName }}</strong>
+                <span class="claim-contact">{{ claim.claimantContact }}</span>
+              </div>
+              <div class="claim-meta">
+                <span [class]="'badge ' + getClaimStatusClass(claim.status)">
+                  {{ getClaimStatusLabel(claim.status) }}
+                </span>
+                <span class="claim-date">{{ claim.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+            @if (claim.description) {
+              <p class="claim-desc">{{ claim.description }}</p>
+            }
+            @if (claim.status === 'PENDING') {
+              <div class="claim-actions">
+                <button class="btn btn-sm btn-success" (click)="approveClaim(claim)">✅ Approuver</button>
+                <button class="btn btn-sm btn-danger" (click)="rejectClaim(claim)">❌ Rejeter</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

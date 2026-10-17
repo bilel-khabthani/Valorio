@@ -1,0 +1,43 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="brand-icon">🔍</span>
+    <a routerLink="/dashboard" class="brand-name">Lost &amp; Found</a>
+  </div>
+
+  <button class="menu-toggle" (click)="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <ul class="navbar-links" [class.open]="menuOpen">
+    <li>
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="menuOpen=false">
+        <span class="nav-icon">📊</span> Tableau de bord
+      </a>
+    </li>
+    <li>
+      <a routerLink="/items" routerLinkActive="active" (click)="menuOpen=false">
+        <span class="nav-icon">📋</span> Tous les objets
+      </a>
+    </li>
+    <li>
+      <a routerLink="/items/lost" routerLinkActive="active" (click)="menuOpen=false">
+        <span class="nav-icon">❌</span> Objets perdus
+      </a>
+    </li>
+    <li>
+      <a routerLink="/items/found" routerLinkActive="active" (click)="menuOpen=false">
+        <span class="nav-icon">✅</span> Objets trouvés
+      </a>
+    </li>
+    <li>
+      <a routerLink="/claims" routerLinkActive="active" (click)="menuOpen=false">
+        <span class="nav-icon">📝</span> Réclamations
+      </a>
+    </li>
+    <li>
+      <a routerLink="/items/new" class="btn-add" (click)="menuOpen=false">
+        <span>+</span> Déclarer un objet
+      </a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,180 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background: #f4f6fb;
+}
+
+h1, h2, h3, h4, h5, h6 { margin-top: 0; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 7px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: #1a237e;
+    color: #fff;
+    &:hover:not(:disabled) { background: #283593; }
+  }
+
+  &.btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    &:hover:not(:disabled) { background: #eeeeee; }
+  }
+
+  &.btn-success {
+    background: #43a047;
+    color: #fff;
+    &:hover:not(:disabled) { background: #388e3c; }
+  }
+
+  &.btn-warning {
+    background: #fb8c00;
+    color: #fff;
+    &:hover:not(:disabled) { background: #f57c00; }
+  }
+
+  &.btn-danger {
+    background: #e53935;
+    color: #fff;
+    &:hover:not(:disabled) { background: #c62828; }
+  }
+
+  &.btn-info {
+    background: #0288d1;
+    color: #fff;
+    &:hover:not(:disabled) { background: #0277bd; }
+  }
+
+  &.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ===== Badges ===== */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  &.badge-lost {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  &.badge-found {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.status-active {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  &.status-claimed {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  &.status-returned {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+}
+
+/* ===== Forms ===== */
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid #ddd;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #1a237e;
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.1);
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+  }
+}
+
+textarea { resize: vertical; }
+
+select { cursor: pointer; }
+
+/* ===== Alerts ===== */
+.alert {
+  padding: 0.85rem 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  &.alert-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+
+  &.alert-error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+  }
+
+  &.alert-info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+  }
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #bbb; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }

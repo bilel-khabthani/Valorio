@@ -1,0 +1,116 @@
+<div class="items-list">
+  <div class="page-header">
+    <h1>{{ pageTitle }} <span class="count" *ngIf="!loading">({{ items.length }})</span></h1>
+    <a routerLink="/items/new" class="btn btn-primary">+ Déclarer un objet</a>
+  </div>
+
+  <!-- Messages -->
+  @if (successMessage) {
+    <div class="alert alert-success">{{ successMessage }}</div>
+  }
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  <!-- Filtres -->
+  <div class="filters-panel">
+    <div class="search-row">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Rechercher par titre..."
+        [(ngModel)]="keyword"
+        (keyup.enter)="onSearch()"
+      />
+      <button class="btn btn-primary" (click)="onSearch()">🔍 Rechercher</button>
+      <button class="btn btn-secondary" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+
+    <div class="filters-row">
+      <select [(ngModel)]="selectedCategory" (change)="onSearch()" class="filter-select">
+        <option value="">Toutes les catégories</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="selectedLocation" (change)="onSearch()" class="filter-select">
+        <option value="">Toutes les localisations</option>
+        @for (loc of locations; track loc) {
+          <option [value]="loc">{{ loc }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="selectedType" (change)="onSearch()" class="filter-select" [disabled]="routeType !== null">
+        <option value="">Tous les types</option>
+        <option value="LOST">Perdu</option>
+        <option value="FOUND">Trouvé</option>
+      </select>
+
+      <select [(ngModel)]="selectedStatus" (change)="onSearch()" class="filter-select">
+        <option value="">Tous les statuts</option>
+        <option value="ACTIVE">Actif</option>
+        <option value="CLAIMED">Réclamé</option>
+        <option value="RETURNED">Restitué</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  }
+
+  <!-- Pas de résultats -->
+  @if (!loading && items.length === 0 && !error) {
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>Aucun objet trouvé</h3>
+      <p>Modifiez vos critères de recherche ou déclarez un nouvel objet.</p>
+      <a routerLink="/items/new" class="btn btn-primary">Déclarer un objet</a>
+    </div>
+  }
+
+  <!-- Liste -->
+  @if (!loading && items.length > 0) {
+    <div class="items-grid">
+      @for (item of items; track item.id) {
+        <div class="item-card">
+          <a [routerLink]="['/items', item.id]" class="item-photo">
+            @if (item.photoUrl) {
+              <img [src]="item.photoUrl" [alt]="item.title" />
+            } @else {
+              <div class="no-photo">📷</div>
+            }
+          </a>
+          <div class="item-body">
+            <div class="item-badges">
+              <span [class]="'badge ' + getTypeClass(item.type)">{{ getTypeLabel(item.type) }}</span>
+              <span [class]="'badge ' + getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
+            </div>
+            <h3>
+              <a [routerLink]="['/items', item.id]">{{ item.title }}</a>
+            </h3>
+            <p class="item-category">🏷️ {{ item.category }}</p>
+            <p class="item-location">📍 {{ item.location }}</p>
+            <p class="item-date">📅 {{ item.date }}</p>
+            @if (item.description) {
+              <p class="item-desc">{{ item.description | slice:0:80 }}{{ item.description.length > 80 ? '...' : '' }}</p>
+            }
+          </div>
+          <div class="item-actions">
+            <a [routerLink]="['/items', item.id]" class="btn btn-sm btn-info">Voir</a>
+            <a [routerLink]="['/items', item.id, 'edit']" class="btn btn-sm btn-warning">Modifier</a>
+            @if (item.status !== 'RETURNED') {
+              <button class="btn btn-sm btn-success" (click)="confirmReturn(item)">Restitué</button>
+            }
+            <button class="btn btn-sm btn-danger" (click)="confirmDelete(item)">Supprimer</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

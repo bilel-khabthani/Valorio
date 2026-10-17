@@ -1,0 +1,134 @@
+<div class="dashboard">
+  <div class="page-header">
+    <h1>Tableau de bord</h1>
+    <a routerLink="/items/new" class="btn btn-primary">+ Déclarer un objet</a>
+  </div>
+
+  <!-- Erreur -->
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Chargement des statistiques...</p>
+    </div>
+  }
+
+  <!-- Statistiques -->
+  @if (!loading && stats) {
+    <div class="stats-grid">
+      <div class="stat-card stat-total">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalItems }}</span>
+          <span class="stat-label">Total objets</span>
+        </div>
+      </div>
+      <div class="stat-card stat-lost">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalLost }}</span>
+          <span class="stat-label">Objets perdus</span>
+        </div>
+      </div>
+      <div class="stat-card stat-found">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalFound }}</span>
+          <span class="stat-label">Objets trouvés</span>
+        </div>
+      </div>
+      <div class="stat-card stat-active">
+        <div class="stat-icon">🔵</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalActive }}</span>
+          <span class="stat-label">Actifs</span>
+        </div>
+      </div>
+      <div class="stat-card stat-claimed">
+        <div class="stat-icon">🟡</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalClaimed }}</span>
+          <span class="stat-label">Réclamés</span>
+        </div>
+      </div>
+      <div class="stat-card stat-returned">
+        <div class="stat-icon">🟢</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalReturned }}</span>
+          <span class="stat-label">Restitués</span>
+        </div>
+      </div>
+      <div class="stat-card stat-claims">
+        <div class="stat-icon">📝</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.totalClaims }}</span>
+          <span class="stat-label">Réclamations</span>
+        </div>
+      </div>
+      <div class="stat-card stat-pending">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.pendingClaims }}</span>
+          <span class="stat-label">En attente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="quick-actions">
+      <h2>Actions rapides</h2>
+      <div class="action-buttons">
+        <a routerLink="/items/new" [queryParams]="{type: 'LOST'}" class="action-btn action-lost">
+          <span class="action-icon">❌</span>
+          <span>Déclarer un objet perdu</span>
+        </a>
+        <a routerLink="/items/new" [queryParams]="{type: 'FOUND'}" class="action-btn action-found">
+          <span class="action-icon">✅</span>
+          <span>Déclarer un objet trouvé</span>
+        </a>
+        <a routerLink="/claims" class="action-btn action-claims">
+          <span class="action-icon">📝</span>
+          <span>Voir les réclamations</span>
+        </a>
+        <a routerLink="/items" class="action-btn action-all">
+          <span class="action-icon">📋</span>
+          <span>Tous les objets</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Objets récents -->
+    @if (recentItems.length > 0) {
+      <div class="recent-items">
+        <div class="section-header">
+          <h2>Objets récents</h2>
+          <a routerLink="/items" class="see-all">Voir tout →</a>
+        </div>
+        <div class="items-grid">
+          @for (item of recentItems; track item.id) {
+            <a [routerLink]="['/items', item.id]" class="item-card">
+              <div class="item-photo">
+                @if (item.photoUrl) {
+                  <img [src]="item.photoUrl" [alt]="item.title" />
+                } @else {
+                  <div class="no-photo">📷</div>
+                }
+              </div>
+              <div class="item-info">
+                <span [class]="'badge ' + getTypeClass(item.type)">{{ getTypeLabel(item.type) }}</span>
+                <h3>{{ item.title }}</h3>
+                <p class="item-category">{{ item.category }}</p>
+                <p class="item-location">📍 {{ item.location }}</p>
+                <p class="item-date">📅 {{ item.date }}</p>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
