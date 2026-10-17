@@ -49,6 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_email_verif_token_hash ON auth.email_verification
 -- Seed initial admin (Admin123456!) and test user (User123456!)
 INSERT INTO auth.users (email, password_hash, nom, prenom, role, actif, email_verifie)
 VALUES 
-('admin@valorio.tn', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4hM9WqWcmu', 'Admin', 'Système', 'ADMIN', TRUE, TRUE),
-('amine.bensalah@example.com', '$2a$12$K.T8x5PZk8pP4XjR0l4.5.3u2Kj8vW9Z1X2c3v4b5n6m7q8w9e0r.', 'Ben Salah', 'Amine', 'USER', TRUE, TRUE)
+('admin@valorio.tn', '$2a$12$iBl5LeFcu4sw.TIi.9MxkejfyTUwAPAtDMT/BGyO3aWa1soqZJ9Ta', 'Admin', 'Système', 'ADMIN', TRUE, TRUE),
+('amine.bensalah@example.com', '$2a$12$w/aCZBl82MUCFUAnddo1g.Ur19dAXqJ3.7tPNjwKEmAeb/bf4G1Qy', 'Ben Salah', 'Amine', 'USER', TRUE, TRUE)
 ON CONFLICT (email) DO NOTHING;
+

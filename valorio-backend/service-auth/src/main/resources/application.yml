@@ -10,6 +10,7 @@ spring:
     schemas: auth
     default-schema: auth
     create-schemas: true
+    baseline-on-migrate: true
 
 server:
   port: 8084
