@@ -1,0 +1,169 @@
+<div class="auth-page">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <div class="auth-badge">Nouveau Membre</div>
+      <h1>Créer un compte</h1>
+      <p>Rejoignez ValorIO pour donner, réparer et recycler vos objets</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-error" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success" role="alert">
+        {{ successMessage() }}
+      </div>
+    }
+
+    <form class="auth-form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prenom">Prénom *</label>
+          <input
+            id="prenom"
+            type="text"
+            name="prenom"
+            [(ngModel)]="prenom"
+            placeholder="Ex. Amine"
+            required
+            autocomplete="given-name"
+          />
+        </div>
+        <div class="form-group">
+          <label for="nom">Nom *</label>
+          <input
+            id="nom"
+            type="text"
+            name="nom"
+            [(ngModel)]="nom"
+            placeholder="Ex. Ben Salah"
+            required
+            autocomplete="family-name"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Adresse email *</label>
+        <input
+          id="reg-email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="votre.email@exemple.com"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="reg-password">Mot de passe (minimum 12 caractères) *</label>
+        <div class="input-password-wrapper">
+          <input
+            id="reg-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            name="password"
+            [ngModel]="password()"
+            (ngModelChange)="onPasswordChange($event)"
+            placeholder="••••••••••••"
+            required
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="btn-toggle-pwd"
+            (click)="toggleShowPassword()"
+            [attr.aria-label]="showPassword() ? 'Masquer' : 'Afficher'"
+          >
+            {{ showPassword() ? 'Masquer' : 'Afficher' }}
+          </button>
+        </div>
+
+        <!-- Indicateur dynamique de force du mot de passe -->
+        @if (password().length > 0) {
+          <div class="strength-meter">
+            <div class="strength-bar-bg">
+              <div
+                class="strength-bar-fill"
+                [style.width.%]="strengthScore()"
+                [style.background-color]="strengthLabel().color"
+              ></div>
+            </div>
+            <div class="strength-label">
+              <span>Force du mot de passe</span>
+              <span [style.color]="strengthLabel().color">{{ strengthLabel().label }}</span>
+            </div>
+          </div>
+          <div class="checklist">
+            <div class="check-item" [class.valid]="passwordLengthOk()">
+              <span>{{ passwordLengthOk() ? '✔' : '○' }}</span> Au moins 12 caractères
+            </div>
+            <div class="check-item" [class.valid]="hasUppercase() && hasLowercase()">
+              <span>{{ hasUppercase() && hasLowercase() ? '✔' : '○' }}</span> Majuscules et minuscules
+            </div>
+            <div class="check-item" [class.valid]="hasNumber()">
+              <span>{{ hasNumber() ? '✔' : '○' }}</span> Au moins un chiffre
+            </div>
+            <div class="check-item" [class.valid]="hasSpecial()">
+              <span>{{ hasSpecial() ? '✔' : '○' }}</span> Au moins un caractère spécial (@$!%*?#)
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirm-password">Confirmer le mot de passe *</label>
+        <div class="input-password-wrapper">
+          <input
+            id="confirm-password"
+            [type]="showConfirmPassword() ? 'text' : 'password'"
+            name="confirmPassword"
+            [ngModel]="confirmPassword()"
+            (ngModelChange)="onConfirmPasswordChange($event)"
+            placeholder="••••••••••••"
+            required
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="btn-toggle-pwd"
+            (click)="toggleShowConfirmPassword()"
+            [attr.aria-label]="showConfirmPassword() ? 'Masquer' : 'Afficher'"
+          >
+            {{ showConfirmPassword() ? 'Masquer' : 'Afficher' }}
+          </button>
+        </div>
+        @if (confirmPassword() && !passwordsMatch()) {
+          <span class="field-error">Les mots de passe ne correspondent pas</span>
+        }
+      </div>
+
+      <div class="terms-row">
+        <label class="checkbox-label">
+          <input type="checkbox" name="terms" [(ngModel)]="termsAccepted" required />
+          <span>J'accepte les conditions d'utilisation et la politique de confidentialité de ValorIO *</span>
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading() || !termsAccepted || password().length < 12 || !passwordsMatch()"
+      >
+        @if (loading()) {
+          <span class="spinner"></span> Inscription en cours...
+        } @else {
+          Créer mon compte
+        }
+      </button>
+
+      <div class="auth-footer">
+        <span>Vous possédez déjà un compte ?</span>
+        <a routerLink="/login" class="link-register">Se connecter</a>
+      </div>
+    </form>
+  </div>
+</div>
