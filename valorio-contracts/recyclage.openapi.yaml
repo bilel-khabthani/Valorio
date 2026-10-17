@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: Valorio - API Recyclage
+  description: Contrat du module 7 (Recyclage) - service-recyclage (:8083). Les entités marquées "externe" proviennent d'autres modules : adaptateur STATIQUE par défaut, réel en profil `integ`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8083
+tags:
+  - name: recyclabilite
+    description: 7.1 Identification
+  - name: centres
+    description: 7.2 Centres de recyclage
+  - name: collectes
+    description: 7.3 Collecte
+  - name: entites-externes
+    description: Entités des autres modules (statiques puis dynamiques)
+paths:
+  /api/objets/{objetId}/recyclabilite:
+    get:
+      tags: [recyclabilite]
+      summary: 7.1 Déterminer si un objet est recyclable
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Verdict de recyclabilité
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnalyseRecyclabilite" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/centres:
+    get:
+      tags: [centres]
+      summary: 7.2 Rechercher un centre (matériaux, distance, horaires)
+      parameters:
+        - name: materiau
+          in: query
+          schema: { type: string }
+        - name: latitude
+          in: query
+          schema: { type: number, format: double }
+        - name: longitude
+          in: query
+          schema: { type: number, format: double }
+        - name: rayonKm
+          in: query
+          schema: { type: number, format: double }
+          default: 50
+      responses:
+        "200":
+          description: Centres correspondants, triés par distance
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CentreRecyclage" }
+    post:
+      tags: [centres]
+      summary: Enregistrer un centre (organisme / administrateur)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CentreRecyclageRequest" }
+      responses:
+        "201":
+          description: Centre créé
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CentreRecyclage" }
+        "400": { $ref: "#/components/responses/Validation" }
+  /api/centres/{centreId}:
+    get:
+      tags: [centres]
+      summary: Consulter un centre (matériaux acceptés, horaires)
+      parameters:
+        - $ref: "#/components/parameters/CentreId"
+      responses:
+        "200":
+          description: Centre
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CentreRecyclage" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [centres]
+      summary: Modifier un centre
+      parameters:
+        - $ref: "#/components/parameters/CentreId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CentreRecyclageRequest" }
+      responses:
+        "200":
+          description: Centre modifié
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CentreRecyclage" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/collectes:
+    post:
+      tags: [collectes]
+      summary: 7.3 Demander une collecte (statut DEMANDE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DemandeCollecteRequest" }
+      responses:
+        "201":
+          description: Collecte demandée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeCollecte" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "409":
+          description: Objet non recyclable
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+    get:
+      tags: [collectes]
+      summary: Lister les collectes (suivi utilisateur / organisme)
+      parameters:
+        - name: statut
+          in: query
+          schema: { $ref: "#/components/schemas/StatutCollecte" }
+        - name: utilisateurId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: centreId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Collectes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DemandeCollecte" }
+  /api/collectes/{collecteId}:
+    get:
+      tags: [collectes]
+      summary: Consulter une collecte
+      parameters:
+        - $ref: "#/components/parameters/CollecteId"
+      responses:
+        "200":
+          description: Collecte
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeCollecte" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/collectes/{collecteId}/statut:
+    put:
+      tags: [collectes]
+      summary: "7.3 Avancer la collecte (DEMANDE -> PLANIFIEE -> EN_COURS -> RECUE), réception horodatée"
+      parameters:
+        - $ref: "#/components/parameters/CollecteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [statut]
+              properties:
+                statut: { $ref: "#/components/schemas/StatutCollecte" }
+                datePrevue: { type: string, format: date-time }
+                commentaire: { type: string }
+      responses:
+        "200":
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemandeCollecte" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Transition interdite
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/objets:
+    get:
+      tags: [entites-externes]
+      summary: Lister les objets (externe : Module 2)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Objets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Objet" }
+  /api/objets/{objetId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un objet (externe : Module 2)
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Objet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/utilisateurs:
+    get:
+      tags: [entites-externes]
+      summary: Lister les utilisateurs (externe : Module 1)
+      responses:
+        "200":
+          description: Utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Utilisateur" }
+  /api/utilisateurs/{utilisateurId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter un utilisateur (externe : Module 1)
+      parameters:
+        - $ref: "#/components/parameters/UtilisateurId"
+      responses:
+        "200":
+          description: Utilisateur
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/categories/{categorieId}:
+    get:
+      tags: [entites-externes]
+      summary: Consulter une catégorie (externe : Module 2)
+      parameters:
+        - $ref: "#/components/parameters/CategorieId"
+      responses:
+        "200":
+          description: Catégorie
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Categorie" }
+        "404": { $ref: "#/components/responses/NotFound" }
+components:
+  parameters:
+    ObjetId:
+      name: objetId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CentreId:
+      name: centreId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CollecteId:
+      name: collecteId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    UtilisateurId:
+      name: utilisateurId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CategorieId:
+      name: categorieId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+    Validation:
+      description: Requête invalide
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+  schemas:
+    StatutCollecte:
+      type: string
+      enum: [DEMANDE, PLANIFIEE, EN_COURS, RECUE, ANNULEE]
+    Objet:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, categorieId, intitule, etat]
+      properties:
+        id: { type: integer, format: int64 }
+        categorieId: { type: integer, format: int64 }
+        intitule: { type: string }
+        etat: { type: string, enum: [NEUF, BON, ENDOMMAGE, HORS_SERVICE] }
+        ageAnnees: { type: integer }
+        valeurEstimee: { type: number, format: double }
+        ville: { type: string }
+        materiaux: { type: array, items: { type: string } }
+        proprietaireId: { type: integer, format: int64 }
+    Utilisateur:
+      type: object
+      description: Entité externe - Module 1
+      required: [id, nom, ville]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        prenom: { type: string }
+        email: { type: string, format: email }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        scoreReputation: { type: number, format: double }
+    Categorie:
+      type: object
+      description: Entité externe - Module 2
+      required: [id, nom]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+    AnalyseRecyclabilite:
+      type: object
+      required: [objetId, recyclable, motifs]
+      properties:
+        objetId: { type: integer, format: int64 }
+        recyclable:
+          type: string
+          enum: [OUI, PARTIEL, NON]
+        materiaux: { type: array, items: { type: string } }
+        motifs: { type: array, items: { type: string } }
+        centresAppropries: { type: array, items: { type: integer, format: int64 } }
+    CentreRecyclage:
+      type: object
+      required: [id, nom, materiauxAcceptes]
+      properties:
+        id: { type: integer, format: int64 }
+        organismeId: { type: integer, format: int64 }
+        nom: { type: string }
+        ville: { type: string }
+        adresse: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        materiauxAcceptes: { type: array, items: { type: string } }
+        horaires: { type: string }
+        distanceKm: { type: number, format: double }
+    CentreRecyclageRequest:
+      type: object
+      required: [nom, materiauxAcceptes]
+      properties:
+        organismeId: { type: integer, format: int64 }
+        nom: { type: string }
+        ville: { type: string }
+        adresse: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        materiauxAcceptes: { type: array, items: { type: string } }
+        horaires: { type: string }
+    DemandeCollecte:
+      type: object
+      required: [id, objetId, utilisateurId, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        utilisateurId: { type: integer, format: int64 }
+        centreId: { type: integer, format: int64 }
+        statut: { $ref: "#/components/schemas/StatutCollecte" }
+        dateDemande: { type: string, format: date-time }
+        datePrevue: { type: string, format: date-time, nullable: true }
+        dateReception: { type: string, format: date-time, nullable: true }
+        historique:
+          type: array
+          items:
+            type: object
+            properties:
+              statut: { $ref: "#/components/schemas/StatutCollecte" }
+              date: { type: string, format: date-time }
+              commentaire: { type: string }
+    DemandeCollecteRequest:
+      type: object
+      required: [objetId, utilisateurId]
+      properties:
+        objetId: { type: integer, format: int64 }
+        utilisateurId: { type: integer, format: int64 }
+        centreId: { type: integer, format: int64 }
+        datePrevue: { type: string, format: date-time }
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

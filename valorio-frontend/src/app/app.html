@@ -1,0 +1,37 @@
+<header class="app-bar">
+  <div class="app-bar-inner">
+    <a class="brand" routerLink="/">Val<span>orio</span></a>
+    <nav class="nav">
+      <a routerLink="/reparation" routerLinkActive="active">Réparation</a>
+      <a routerLink="/don" routerLinkActive="active">Don</a>
+      <a routerLink="/recyclage" routerLinkActive="active">Recyclage</a>
+    </nav>
+    <div class="session">
+      <label class="session-field">
+        <span>Rôle</span>
+        <select name="roleSession" [(ngModel)]="roleChoisi" (ngModelChange)="onRoleChange()">
+          @for (r of roles; track r) {
+            <option [value]="r">{{ libelleRole[r] }}</option>
+          }
+        </select>
+      </label>
+      @if (roleChoisi !== 'ADMIN') {
+        <label class="session-field">
+          <span>Identité</span>
+          <select name="identiteSession" [(ngModel)]="identiteChoisie" (ngModelChange)="onIdentiteChange()">
+            @for (o of optionsIdentite(); track o.valeur) {
+              <option [ngValue]="o.valeur">{{ o.label }}</option>
+            }
+          </select>
+        </label>
+      }
+      <span class="session-badge" title="Session simulée (Module 1 non implémenté)">
+        {{ libelleRole[roleChoisi] }} · {{ session.label() }}
+      </span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>
