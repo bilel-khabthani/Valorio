@@ -173,6 +173,7 @@ public class AuthService {
         String normalizedEmail = request.email().trim().toLowerCase();
         Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
 
+        String devLink = null;
         // Réponse générique pour éviter l'énumération des utilisateurs
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -183,10 +184,12 @@ public class AuthService {
                     OffsetDateTime.now().plusMinutes(15) // Valide 15 minutes
             );
             emailService.sendPasswordResetEmail(user.email(), rawResetToken);
+            devLink = "/reset-password?token=" + rawResetToken;
         }
 
-        return MessageResponse.of("Si cette adresse email existe, un lien de réinitialisation vous a été envoyé.");
+        return MessageResponse.of("Si cette adresse email existe, un lien de réinitialisation vous a été envoyé.", devLink);
     }
+
 
     @Transactional
     public MessageResponse resetPassword(ResetPasswordRequest request) {
@@ -235,6 +238,7 @@ public class AuthService {
         String normalizedEmail = email.trim().toLowerCase();
         Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
 
+        String devLink = null;
         if (userOpt.isPresent() && !userOpt.get().emailVerifie()) {
             User user = userOpt.get();
             String rawVerifToken = UUID.randomUUID().toString();
@@ -244,9 +248,11 @@ public class AuthService {
                     OffsetDateTime.now().plusHours(24)
             );
             emailService.sendVerificationEmail(user.email(), rawVerifToken);
+            devLink = "/verify-email?token=" + rawVerifToken;
         }
 
-        return MessageResponse.of("Si ce compte requiert une validation, un email a été réexpédié.");
+        return MessageResponse.of("Si ce compte requiert une validation, un email a été réexpédié.", devLink);
+
     }
 
     private AuthResponse createSessionAndTokens(User user, int daysValid, HttpServletResponse response) {

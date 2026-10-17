@@ -18,6 +18,7 @@ export class ForgotPasswordComponent {
   loading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  devLink = signal<string | null>(null);
 
   onSubmit(): void {
     if (!this.email.trim()) {
@@ -28,11 +29,13 @@ export class ForgotPasswordComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.devLink.set(null);
 
     this.authService.forgotPassword({ email: this.email.trim() }).subscribe({
       next: (res) => {
         this.loading.set(false);
         this.successMessage.set(res.message);
+        this.devLink.set(res.devLink || null);
       },
       error: (err) => {
         this.loading.set(false);
@@ -41,3 +44,4 @@ export class ForgotPasswordComponent {
     });
   }
 }
+

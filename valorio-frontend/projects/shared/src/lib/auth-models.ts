@@ -54,4 +54,6 @@ export interface ResendVerificationRequest {
 export interface MessageResponse {
   message: string;
   success: boolean;
+  devLink?: string;
 }
+
