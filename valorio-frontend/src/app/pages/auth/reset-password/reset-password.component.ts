@@ -17,8 +17,9 @@ export class ResetPasswordComponent implements OnInit {
   private readonly router = inject(Router);
 
   token = '';
+  hasTokenFromUrl = signal(false);
   newPassword = signal('');
-  confirmPassword = '';
+  confirmPassword = signal('');
 
   showPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -52,13 +53,16 @@ export class ResetPasswordComponent implements OnInit {
   });
 
   readonly passwordsMatch = computed(() => {
-    return this.newPassword() && this.confirmPassword && this.newPassword() === this.confirmPassword;
+    return this.newPassword().length > 0 && this.newPassword() === this.confirmPassword();
   });
 
   ngOnInit(): void {
-    this.token = this.route.snapshot.queryParams['token'] || '';
-    if (!this.token) {
-      this.errorMessage.set('Jeton de réinitialisation manquant ou invalide.');
+    const qToken = this.route.snapshot.queryParams['token'] || '';
+    if (qToken) {
+      this.token = qToken;
+      this.hasTokenFromUrl.set(true);
+    } else {
+      this.errorMessage.set('Veuillez renseigner le code ou jeton reçu par email.');
     }
   }
 
@@ -74,8 +78,12 @@ export class ResetPasswordComponent implements OnInit {
     this.newPassword.set(val);
   }
 
+  onConfirmPasswordChange(val: string): void {
+    this.confirmPassword.set(val);
+  }
+
   onSubmit(): void {
-    if (!this.token) {
+    if (!this.token.trim()) {
       this.errorMessage.set('Jeton de réinitialisation manquant.');
       return;
     }
@@ -85,7 +93,7 @@ export class ResetPasswordComponent implements OnInit {
       return;
     }
 
-    if (this.newPassword() !== this.confirmPassword) {
+    if (this.newPassword() !== this.confirmPassword()) {
       this.errorMessage.set('Les deux mots de passe ne correspondent pas.');
       return;
     }
@@ -95,9 +103,9 @@ export class ResetPasswordComponent implements OnInit {
     this.successMessage.set(null);
 
     const payload: ResetPasswordRequest = {
-      token: this.token,
+      token: this.token.trim(),
       newPassword: this.newPassword(),
-      confirmPassword: this.confirmPassword,
+      confirmPassword: this.confirmPassword(),
     };
 
     this.authService.resetPassword(payload).subscribe({
@@ -115,3 +123,4 @@ export class ResetPasswordComponent implements OnInit {
     });
   }
 }
+
