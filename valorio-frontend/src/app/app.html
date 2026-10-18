@@ -1,3 +1,4 @@
+@if (!estEspaceAdmin()) {
 <header class="app-bar">
   <div class="app-bar-inner">
     <a class="brand" routerLink="/">Val<span>orio</span></a>
@@ -36,7 +37,8 @@
     </div>
   </div>
 </header>
+}
 
-<main>
+<main [class.main-plein]="estEspaceAdmin()">
   <router-outlet />
 </main>

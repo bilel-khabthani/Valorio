@@ -44,8 +44,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [acteurGuard(['ADMIN'])],
-    loadComponent: () =>
-      import('./pages/espaces/espace-admin.component').then((m) => m.EspaceAdminComponent),
+    loadChildren: () => import('@valorio/feature-admin').then((m) => m.routes),
   },
   {
     path: 'reparation',

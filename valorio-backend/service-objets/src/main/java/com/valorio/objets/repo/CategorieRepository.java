@@ -54,4 +54,33 @@ public class CategorieRepository {
                 .query(Integer.class)
                 .single() > 0;
     }
+
+    public void maj(long id, String nom, String description) {
+        jdbc.sql("UPDATE categorie SET nom = :nom, description = :description WHERE id = :id")
+                .param("nom", nom)
+                .param("description", description)
+                .param("id", id)
+                .update();
+    }
+
+    public void supprimer(long id) {
+        jdbc.sql("DELETE FROM categorie WHERE id = :id")
+                .param("id", id)
+                .update();
+    }
+
+    public boolean existeNomSauf(String nom, long id) {
+        return jdbc.sql("SELECT COUNT(*) FROM categorie WHERE lower(nom) = lower(:nom) AND id <> :id")
+                .param("nom", nom)
+                .param("id", id)
+                .query(Integer.class)
+                .single() > 0;
+    }
+
+    public int compteObjets(long categorieId) {
+        return jdbc.sql("SELECT COUNT(*) FROM objet WHERE categorie_id = :id")
+                .param("id", categorieId)
+                .query(Integer.class)
+                .single();
+    }
 }

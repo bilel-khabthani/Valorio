@@ -149,4 +149,24 @@ public class UserRepository {
                 .query(USER_MAPPER)
                 .list();
     }
+
+    public void majActif(long id, boolean actif) {
+        jdbcClient.sql("UPDATE auth.users SET actif = :actif, date_maj = now() WHERE id = :id")
+                .param("actif", actif)
+                .param("id", id)
+                .update();
+    }
+
+    public void majActeur(long id, Acteur acteur) {
+        jdbcClient.sql("UPDATE auth.users SET acteur = :acteur, date_maj = now() WHERE id = :id")
+                .param("acteur", acteur.name())
+                .param("id", id)
+                .update();
+    }
+
+    public void supprimer(long id) {
+        jdbcClient.sql("DELETE FROM auth.users WHERE id = :id")
+                .param("id", id)
+                .update();
+    }
 }

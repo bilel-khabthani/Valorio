@@ -420,6 +420,66 @@
           }
         }
       }
+    },
+    "api-admin": {
+      "projectType": "library",
+      "root": "projects/api-admin",
+      "sourceRoot": "projects/api-admin/src",
+      "prefix": "valorio",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/api-admin/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/api-admin/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/api-admin/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
+    },
+    "feature-admin": {
+      "projectType": "library",
+      "root": "projects/feature-admin",
+      "sourceRoot": "projects/feature-admin/src",
+      "prefix": "valorio",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/feature-admin/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/feature-admin/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/feature-admin/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
     }
   }
 }

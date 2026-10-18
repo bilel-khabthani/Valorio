@@ -5,11 +5,15 @@ import java.net.URI;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +54,27 @@ public class ApiExceptionHandler {
                 .reduce((a, b) -> a + " ; " + b)
                 .orElse("Requête invalide");
         return problem(HttpStatus.BAD_REQUEST, "Validation échouée", detail, request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail routeNotFound(NoResourceFoundException ex, HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Ressource introuvable", "Aucune ressource pour " + request.getRequestURI(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail typeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        return problem(HttpStatus.BAD_REQUEST, "Requête invalide",
+                "Paramètre « " + ex.getName() + " » de type invalide", request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail unreadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return problem(HttpStatus.BAD_REQUEST, "Requête invalide", "Le corps de la requête est illisible ou mal formé", request);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ProblemDetail methodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        return problem(HttpStatus.METHOD_NOT_ALLOWED, "Méthode non autorisée", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

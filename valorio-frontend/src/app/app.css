@@ -169,3 +169,8 @@ main {
   max-width: 1400px;
   margin: 0 auto;
 }
+
+main.main-plein {
+  max-width: none;
+  margin: 0;
+}

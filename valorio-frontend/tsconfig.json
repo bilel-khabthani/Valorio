@@ -44,6 +44,12 @@
       ],
       "@valorio/feature-marketplace": [
         "./projects/feature-marketplace/src/public-api.ts"
+      ],
+      "@valorio/api-admin": [
+        "./projects/api-admin/src/public-api.ts"
+      ],
+      "@valorio/feature-admin": [
+        "./projects/feature-admin/src/public-api.ts"
       ]
     },
     "importHelpers": true,
@@ -130,6 +136,18 @@
     },
     {
       "path": "./projects/feature-marketplace/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/api-admin/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-admin/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/feature-admin/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/feature-admin/tsconfig.spec.json"
     }
   ]
 }

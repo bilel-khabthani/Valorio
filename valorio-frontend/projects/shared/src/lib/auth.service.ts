@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, firstValueFrom, map, of, tap, throwError } from 'rxjs';
 import {
   Acteur,
   AuthResponse,
@@ -41,9 +41,7 @@ export class AuthService {
     return u ? (u.nomComplet || `${u.prenom} ${u.nom}`).trim() : '';
   });
 
-  constructor() {
-    this.restaurerSessionMemoire();
-  }
+  private promesseInitialisation?: Promise<void>;
 
   register(data: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/register', data, { withCredentials: true }).pipe(
@@ -122,15 +120,18 @@ export class AuthService {
     this._currentUser.set(null);
   }
 
-  private restaurerSessionMemoire(): void {
-    // Tente un rafraîchissement silencieux de démarrage au chargement de l'application via cookie HTTP-Only
-    this.refresh().subscribe({
-      next: () => {
-        /* Session active restaurée avec succès */
-      },
-      error: () => {
-        /* Utilisateur non authentifié, reste invité */
-      },
-    });
+  /**
+   * Restauration silencieuse de la session au démarrage (cookie refresh HTTP-Only).
+   * Appelée par l'initialiseur d'application : le bootstrap attend sa résolution
+   * afin que les guards voient la session restaurée avant toute navigation
+   * (évite la redirection vers /login lors d'un rafraîchissement de page).
+   */
+  initialiserSession(): Promise<void> {
+    if (!this.promesseInitialisation) {
+      this.promesseInitialisation = firstValueFrom(
+        this.refresh().pipe(catchError(() => of(null)))
+      ).then(() => undefined);
+    }
+    return this.promesseInitialisation;
   }
 }

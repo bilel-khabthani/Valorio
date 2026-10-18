@@ -106,6 +106,17 @@ public class RecyclageService {
     }
 
     @Transactional
+    public void supprimerCentre(long centreId) {
+        CentreRecyclage centre = detailCentre(centreId);
+        if (repository.compteCollectes(centreId) > 0) {
+            throw new IllegalStateException(
+                    "Ce centre est associé à des collectes et ne peut pas être supprimé");
+        }
+        repository.supprimerCentre(centreId);
+        audit.enregistrer("CENTRE_RECYCLAGE_SUPPRIME", "centre_recyclage", centreId, "nom=" + centre.nom());
+    }
+
+    @Transactional
     public DemandeCollecte demanderCollecte(long objetId, long utilisateurId, Long centreId,
                                             OffsetDateTime datePrevue) {
         chargerObjet(objetId);

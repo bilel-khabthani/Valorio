@@ -92,6 +92,31 @@ describe('AuthService', () => {
     req.flush(mockAuthResponse);
   });
 
+  it('restaure la session au démarrage via initialiserSession (refresh réussi)', async () => {
+    const promesse = service.initialiserSession();
+
+    const req = httpMock.expectOne('/api/auth/refresh');
+    expect(req.request.method).toBe('POST');
+    req.flush(mockAuthResponse);
+
+    await promesse;
+
+    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.userName()).toBe('Amine Ben Salah');
+  });
+
+  it('résout sans session si le refresh initial échoue (401)', async () => {
+    const promesse = service.initialiserSession();
+
+    const req = httpMock.expectOne('/api/auth/refresh');
+    req.flush('Non connecté', { status: 401, statusText: 'Unauthorized' });
+
+    await promesse;
+
+    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.currentUser()).toBeNull();
+  });
+
   it('efface la session lors de la déconnexion', () => {
     // Simule une session existante
     service['appliquerSession'](mockAuthResponse);

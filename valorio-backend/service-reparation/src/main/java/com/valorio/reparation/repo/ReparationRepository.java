@@ -218,4 +218,30 @@ public class ReparationRepository {
                 .query(REPARATEUR_MAPPER)
                 .optional();
     }
+
+    public List<Reparateur> findReparateurs() {
+        return jdbc.sql("SELECT * FROM reparateur ORDER BY id")
+                .query(REPARATEUR_MAPPER)
+                .list();
+    }
+
+    public void majDisponible(long id, boolean disponible) {
+        jdbc.sql("UPDATE reparateur SET disponible = :disponible WHERE id = :id")
+                .param("disponible", disponible)
+                .param("id", id)
+                .update();
+    }
+
+    public void supprimerReparateur(long id) {
+        jdbc.sql("DELETE FROM reparateur WHERE id = :id")
+                .param("id", id)
+                .update();
+    }
+
+    public int compteDemandesDuReparateur(long reparateurId) {
+        return jdbc.sql("SELECT COUNT(*) FROM demande_reparation WHERE reparateur_id = :id")
+                .param("id", reparateurId)
+                .query(Integer.class)
+                .single();
+    }
 }

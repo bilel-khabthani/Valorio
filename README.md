@@ -11,7 +11,7 @@ frontend Angular 20 formant un tableau de bord unique.
 | `valorio-backend/service-auth` | Spring Boot 3.3 / Java 17, Security, JDBC, Flyway, HMAC-SHA256 | 8084 |
 | `valorio-backend/service-objets` | Spring Boot 3.3 / Java 17, JDBC + Flyway, diagnostic & recommandation | 8085 |
 | `valorio-backend/service-marketplace` | Spring Boot 3.3 / Java 17, JDBC + Flyway, moteur IA heuristique | 8086 |
-| `valorio-frontend` | Angular 20 (workspace modulaire, 9 libs + pages standalone) | 4200 |
+| `valorio-frontend` | Angular 20 (workspace modulaire, 13 libs + pages standalone) | 4200 |
 
 Chaque service utilise la même base de données PostgreSQL `valorio`, avec un schéma SQL dédié
 (`reparation`, `don`, `recyclage`, `objets`, `marketplace`, `auth`).
@@ -90,7 +90,7 @@ Le dev-server redirige (`proxy.conf.json`) :
 - `/rec/api` → 8083
 - `/objets/api` → 8085
 - `/mkt/api` → 8086
-- `/api/auth` et `/api/users` → 8084
+- `/api/auth`, `/api/users` et `/api/signalements` → 8084
 
 ## Parcours fonctionnels
 
@@ -104,12 +104,11 @@ Le dev-server redirige (`proxy.conf.json`) :
 - **Recyclage** (`/recyclage`) : analyser la recyclabilité d'un objet, rechercher un centre par matériau/distance, demander une collecte et suivre `DEMANDE → PLANIFIEE → EN_COURS → RECUE` (ou `ANNULEE`).
 - **Objets** (`/objets`) : registre filtrable des objets trouvés, déclaration, page détail avec diagnostic, recommandation (`REPARER`/`REVENDRE`/`DONNER`/`RECYCLER`), cycle de vie et historique.
 - **Marketplace** (`/marketplace`, réservé à l'acteur Acheteur) : catalogue des objets non réclamés revalorisés avec **estimation de prix par IA**, **modération automatique** et **détection d'anomalies** ; dépôt d'annonce assisté par IA, offres d'achat / demandes d'attribution solidaire et tableau de négociations (**Laboratoire IA** : `/marketplace/ai-lab`).
+- **Administration** (`/admin`, réservé à l'acteur Administrateur) : tableau de bord avec vue d'ensemble et statistiques ; gestion des **utilisateurs** (activation/désactivation, changement d'acteur, suppression — comptes administrateurs protégés), des **réparateurs**, des **organismes de recyclage**, des **catégories** et des **annonces** (don/marketplace/objets) ; traitement des **signalements** (sous-module 1.3) et **modération** (analyse IA, statut des articles).
 
 ## Rôles & session
 
-L'application intègre une double gestion de session :
-1. **Session Authentifiée Sécurisée** : Connexion via JWT/Spring Security avec affichage du profil connecté, pastille d'avatar, déconnexion avec révocation de session en base.
-2. **Sélecteur d'Acteur Métier Rétractable** : Pour préserver la facilité de démonstration des flux multi-acteurs des modules 4, 6 et 7 (Utilisateur, Réparateur, Donneur, Bénéficiaire, Organisme de recyclage, Administrateur).
+L'application s'appuie sur une **session authentifiée sécurisée** : connexion via JWT/Spring Security, affichage du profil connecté (pastille d'avatar) et déconnexion avec révocation de session en base. L'interface est **100 % pilotée par l'acteur authentifié** (`acteurGuard`/`accueilGuard`) : chaque acteur (Utilisateur, Réparateur, Acheteur, Organisme de recyclage, Administrateur) est redirigé vers son espace et ne voit que les modules pertinents — l'Administrateur accède en plus à `/admin`.
 
 ## Tests automatisés
 
@@ -118,10 +117,10 @@ Exécuter la suite complète de tests (backend et frontend) :
 Backend :
 
 ```powershell
-mvn -f valorio-backend/service-reparation test    # 9 tests
+mvn -f valorio-backend/service-reparation test    # 6 tests
 mvn -f valorio-backend/service-don test           # 13 tests
-mvn -f valorio-backend/service-recyclage test     # 11 tests
-mvn -f valorio-backend/service-auth test          # 35 tests auth & security
+mvn -f valorio-backend/service-recyclage test     # 8 tests
+mvn -f valorio-backend/service-auth test          # 35 tests auth, security, administration & signalements
 mvn -f valorio-backend/service-objets test        # 22 tests
 mvn -f valorio-backend/service-marketplace test   # 19 tests (contrôleurs + moteur IA)
 ```
@@ -132,6 +131,9 @@ Frontend :
 cd valorio-frontend
 $env:CHROME_BIN="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 npx ng test --watch=false --browsers=ChromeHeadless
+# Suites ciblées de l'espace admin :
+npx ng test api-admin --watch=false --browsers=ChromeHeadless      # 19 specs (client HTTP)
+npx ng test feature-admin --watch=false --browsers=ChromeHeadless  # 2 specs (tableau de bord + routes)
 ```
 
 Build frontend de production :

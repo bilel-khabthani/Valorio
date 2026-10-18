@@ -40,4 +40,26 @@ public class CategorieService {
         audit.enregistrer("CATEGORIE_CREEE", "categorie", id, request.nom());
         return detail(id);
     }
+
+    @Transactional
+    public Categorie modifier(long id, CategorieRequest request) {
+        detail(id);
+        if (repository.existeNomSauf(request.nom(), id)) {
+            throw new IllegalStateException("Une catégorie nommée « " + request.nom() + " » existe déjà");
+        }
+        repository.maj(id, request.nom(), request.description());
+        audit.enregistrer("CATEGORIE_MODIFIEE", "categorie", id, request.nom());
+        return detail(id);
+    }
+
+    @Transactional
+    public void supprimer(long id) {
+        Categorie categorie = detail(id);
+        if (repository.compteObjets(id) > 0) {
+            throw new IllegalStateException(
+                    "Cette catégorie est utilisée par des objets et ne peut pas être supprimée");
+        }
+        repository.supprimer(id);
+        audit.enregistrer("CATEGORIE_SUPPRIMEE", "categorie", id, categorie.nom());
+    }
 }

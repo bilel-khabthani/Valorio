@@ -171,4 +171,28 @@ public class ReparationService {
         return repository.findReparateur(id)
                 .orElseThrow(() -> new NoSuchElementException("Réparateur " + id + " introuvable"));
     }
+
+    @Transactional(readOnly = true)
+    public List<Reparateur> listerReparateurs() {
+        return repository.findReparateurs();
+    }
+
+    @Transactional
+    public Reparateur basculerDisponibilite(long id, boolean disponible) {
+        reparateur(id);
+        repository.majDisponible(id, disponible);
+        audit.enregistrer("REPARATEUR_DISPONIBILITE", "reparateur", id, String.valueOf(disponible));
+        return reparateur(id);
+    }
+
+    @Transactional
+    public void supprimerReparateur(long id) {
+        reparateur(id);
+        if (repository.compteDemandesDuReparateur(id) > 0) {
+            throw new IllegalStateException(
+                    "Ce réparateur est associé à des demandes et ne peut pas être supprimé");
+        }
+        repository.supprimerReparateur(id);
+        audit.enregistrer("REPARATEUR_SUPPRIME", "reparateur", id, "suppression administrateur");
+    }
 }

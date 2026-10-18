@@ -116,6 +116,19 @@ public class RecyclageRepository {
                 .update();
     }
 
+    public void supprimerCentre(long id) {
+        jdbc.sql("DELETE FROM centre_recyclage WHERE id = :id")
+                .param("id", id)
+                .update();
+    }
+
+    public int compteCollectes(long centreId) {
+        return jdbc.sql("SELECT COUNT(*) FROM demande_collecte WHERE centre_id = :id")
+                .param("id", centreId)
+                .query(Integer.class)
+                .single();
+    }
+
     public long creerCollecte(long objetId, long utilisateurId, Long centreId, OffsetDateTime datePrevue) {
         return jdbc.sql("""
                         INSERT INTO demande_collecte (objet_id, utilisateur_id, centre_id, statut, date_prevue)

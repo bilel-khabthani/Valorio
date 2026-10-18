@@ -1,6 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
 import { Acteur, AuthService, LIBELLES_ROLE, routeAccueil } from '@valorio/shared';
 
 @Component({
@@ -43,8 +51,22 @@ export class App {
     if (autorise(['ACHETEUR'])) {
       modules.push({ path: '/marketplace', label: 'Marketplace' });
     }
+    if (acteur === 'ADMIN') {
+      modules.unshift({ path: '/admin', label: 'Administration' });
+    }
     return modules;
   });
+
+  private readonly router = inject(Router);
+
+  protected readonly estEspaceAdmin = toSignal(
+    this.router.events.pipe(
+      filter((evenement): evenement is NavigationEnd => evenement instanceof NavigationEnd),
+      map((evenement) => evenement.urlAfterRedirects.startsWith('/admin')),
+      startWith(this.router.url.startsWith('/admin'))
+    ),
+    { initialValue: this.router.url.startsWith('/admin') }
+  );
 
   onLogout(): void {
     this.auth.logout().subscribe();
