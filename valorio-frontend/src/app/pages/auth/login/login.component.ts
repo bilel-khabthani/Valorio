@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, LoginRequest, messageErreur } from '@valorio/shared';
+import { AuthService, LoginRequest, messageErreur, routeAccueil } from '@valorio/shared';
 
 @Component({
   selector: 'app-login',
@@ -46,7 +46,8 @@ export class LoginComponent {
     this.authService.login(credentials).subscribe({
       next: () => {
         this.loading.set(false);
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/reparation';
+        const returnUrl =
+          this.route.snapshot.queryParams['returnUrl'] || routeAccueil(this.authService.acteur());
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {

@@ -1,7 +1,52 @@
 import { Routes } from '@angular/router';
+import { accueilGuard, acteurGuard } from '@valorio/shared';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'reparation' },
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [accueilGuard],
+    loadComponent: () =>
+      import('./pages/accueil/accueil.component').then((m) => m.AccueilComponent),
+  },
+  {
+    path: 'utilisateur',
+    canActivate: [acteurGuard(['UTILISATEUR'])],
+    loadComponent: () =>
+      import('./pages/espaces/espace-utilisateur.component').then(
+        (m) => m.EspaceUtilisateurComponent
+      ),
+  },
+  {
+    path: 'reparateur',
+    canActivate: [acteurGuard(['REPARATEUR'])],
+    loadComponent: () =>
+      import('./pages/espaces/espace-reparateur.component').then(
+        (m) => m.EspaceReparateurComponent
+      ),
+  },
+  {
+    path: 'acheteur',
+    canActivate: [acteurGuard(['ACHETEUR'])],
+    loadComponent: () =>
+      import('./pages/espaces/espace-acheteur.component').then(
+        (m) => m.EspaceAcheteurComponent
+      ),
+  },
+  {
+    path: 'organisme',
+    canActivate: [acteurGuard(['ORGANISME'])],
+    loadComponent: () =>
+      import('./pages/espaces/espace-organisme.component').then(
+        (m) => m.EspaceOrganismeComponent
+      ),
+  },
+  {
+    path: 'admin',
+    canActivate: [acteurGuard(['ADMIN'])],
+    loadComponent: () =>
+      import('./pages/espaces/espace-admin.component').then((m) => m.EspaceAdminComponent),
+  },
   {
     path: 'reparation',
     loadChildren: () => import('@valorio/feature-reparation').then((m) => m.routes),
@@ -13,6 +58,10 @@ export const routes: Routes = [
   {
     path: 'recyclage',
     loadChildren: () => import('@valorio/feature-recyclage').then((m) => m.routes),
+  },
+  {
+    path: 'objets',
+    loadChildren: () => import('@valorio/feature-objets').then((m) => m.routes),
   },
   {
     path: 'login',
@@ -45,6 +94,5 @@ export const routes: Routes = [
         (m) => m.VerifyEmailComponent
       ),
   },
-  { path: '**', redirectTo: 'reparation' },
+  { path: '**', redirectTo: '' },
 ];
-

@@ -1,5 +1,6 @@
 package com.valorio.auth.repo;
 
+import com.valorio.auth.domain.Acteur;
 import com.valorio.auth.domain.Role;
 import com.valorio.auth.domain.User;
 import java.time.OffsetDateTime;
@@ -16,6 +17,10 @@ public class UserRepository {
 
     private final JdbcClient jdbcClient;
 
+    private static final String COLONNES = """
+            id, email, password_hash, nom, prenom, role, acteur, actif, email_verifie,
+            ville, latitude, longitude, score_reputation, date_creation, date_maj""";
+
     private static final RowMapper<User> USER_MAPPER = (rs, i) -> new User(
             rs.getLong("id"),
             rs.getString("email"),
@@ -23,8 +28,13 @@ public class UserRepository {
             rs.getString("nom"),
             rs.getString("prenom"),
             Role.valueOf(rs.getString("role")),
+            Acteur.valueOf(rs.getString("acteur")),
             rs.getBoolean("actif"),
             rs.getBoolean("email_verifie"),
+            rs.getString("ville"),
+            rs.getObject("latitude", Double.class),
+            rs.getObject("longitude", Double.class),
+            rs.getObject("score_reputation", Double.class),
             rs.getObject("date_creation", OffsetDateTime.class),
             rs.getObject("date_maj", OffsetDateTime.class)
     );
@@ -34,11 +44,7 @@ public class UserRepository {
     }
 
     public Optional<User> findById(Long id) {
-        return jdbcClient.sql("""
-                SELECT id, email, password_hash, nom, prenom, role, actif, email_verifie, date_creation, date_maj
-                FROM auth.users
-                WHERE id = :id
-                """)
+        return jdbcClient.sql("SELECT " + COLONNES + " FROM auth.users WHERE id = :id")
                 .param("id", id)
                 .query(USER_MAPPER)
                 .optional();
@@ -48,11 +54,7 @@ public class UserRepository {
         if (email == null) {
             return Optional.empty();
         }
-        return jdbcClient.sql("""
-                SELECT id, email, password_hash, nom, prenom, role, actif, email_verifie, date_creation, date_maj
-                FROM auth.users
-                WHERE LOWER(email) = LOWER(:email)
-                """)
+        return jdbcClient.sql("SELECT " + COLONNES + " FROM auth.users WHERE LOWER(email) = LOWER(:email)")
                 .param("email", email.trim())
                 .query(USER_MAPPER)
                 .optional();
@@ -75,16 +77,24 @@ public class UserRepository {
         if (user.id() == null) {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcClient.sql("""
-                    INSERT INTO auth.users (email, password_hash, nom, prenom, role, actif, email_verifie, date_creation, date_maj)
-                    VALUES (:email, :passwordHash, :nom, :prenom, :role, :actif, :emailVerifie, now(), now())
+                    INSERT INTO auth.users (email, password_hash, nom, prenom, role, acteur, actif, email_verifie,
+                                            ville, latitude, longitude, score_reputation, date_creation, date_maj)
+                    VALUES (:email, :passwordHash, :nom, :prenom, :role, :acteur, :actif, :emailVerifie,
+                            :ville, :latitude, :longitude, :scoreReputation, now(), now())
                     """)
                     .param("email", user.email().trim().toLowerCase())
                     .param("passwordHash", user.passwordHash())
                     .param("nom", user.nom().trim())
                     .param("prenom", user.prenom().trim())
                     .param("role", user.role().name())
+                    .param("acteur", user.acteur() == null ? Acteur.UTILISATEUR.name() : user.acteur().name())
                     .param("actif", user.actif())
                     .param("emailVerifie", user.emailVerifie())
+                    .param("ville", user.ville())
+                    .param("latitude", user.latitude())
+                    .param("longitude", user.longitude())
+                    .param("scoreReputation", user.scoreReputation() == null
+                            ? User.SCORE_PAR_DEFAUT : user.scoreReputation())
                     .update(keyHolder, "id");
             Number key = keyHolder.getKey();
             Long id = key != null ? key.longValue() : null;
@@ -92,14 +102,22 @@ public class UserRepository {
         } else {
             jdbcClient.sql("""
                     UPDATE auth.users
-                    SET nom = :nom, prenom = :prenom, actif = :actif, email_verifie = :emailVerifie, date_maj = now()
+                    SET nom = :nom, prenom = :prenom, acteur = :acteur, actif = :actif, email_verifie = :emailVerifie,
+                        ville = :ville, latitude = :latitude, longitude = :longitude,
+                        score_reputation = :scoreReputation, date_maj = now()
                     WHERE id = :id
                     """)
                     .param("id", user.id())
                     .param("nom", user.nom().trim())
                     .param("prenom", user.prenom().trim())
+                    .param("acteur", user.acteur() == null ? Acteur.UTILISATEUR.name() : user.acteur().name())
                     .param("actif", user.actif())
                     .param("emailVerifie", user.emailVerifie())
+                    .param("ville", user.ville())
+                    .param("latitude", user.latitude())
+                    .param("longitude", user.longitude())
+                    .param("scoreReputation", user.scoreReputation() == null
+                            ? User.SCORE_PAR_DEFAUT : user.scoreReputation())
                     .update();
             return findById(user.id()).orElseThrow();
         }
@@ -127,11 +145,7 @@ public class UserRepository {
     }
 
     public List<User> findAll() {
-        return jdbcClient.sql("""
-                SELECT id, email, password_hash, nom, prenom, role, actif, email_verifie, date_creation, date_maj
-                FROM auth.users
-                ORDER BY id ASC
-                """)
+        return jdbcClient.sql("SELECT " + COLONNES + " FROM auth.users ORDER BY id ASC")
                 .query(USER_MAPPER)
                 .list();
     }

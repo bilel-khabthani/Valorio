@@ -1,15 +1,58 @@
+/* ------------------------------------------------------------------ */
+/* Module 2 - Gestion des objets (service-objets)                     */
+/* ------------------------------------------------------------------ */
+
 export type EtatObjet = 'NEUF' | 'BON' | 'ENDOMMAGE' | 'HORS_SERVICE';
+
+export const ETATS_OBJET: EtatObjet[] = ['NEUF', 'BON', 'ENDOMMAGE', 'HORS_SERVICE'];
+
+export type StatutObjet =
+  | 'DECLARE'
+  | 'DISPONIBLE'
+  | 'EN_REPARATION'
+  | 'REPARE'
+  | 'VENDU'
+  | 'DONNE'
+  | 'RECYCLE';
+
+export const STATUTS_OBJET: StatutObjet[] = [
+  'DECLARE',
+  'DISPONIBLE',
+  'EN_REPARATION',
+  'REPARE',
+  'VENDU',
+  'DONNE',
+  'RECYCLE',
+];
+
+export type TypeEvenement =
+  | 'DECLARATION'
+  | 'MODIFICATION'
+  | 'PHOTO'
+  | 'DIAGNOSTIC'
+  | 'STATUT'
+  | 'REPARATION'
+  | 'TRANSACTION'
+  | 'DON'
+  | 'RECYCLAGE';
 
 export interface Objet {
   id: number;
   categorieId: number;
   intitule: string;
+  description?: string | null;
   etat: EtatObjet;
   ageAnnees?: number;
   valeurEstimee?: number;
   ville?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   materiaux?: string[];
   proprietaireId?: number;
+  statut?: StatutObjet;
+  photos?: string[];
+  dateDeclaration?: string | null;
+  dateMaj?: string | null;
 }
 
 export interface Utilisateur {
@@ -26,6 +69,44 @@ export interface Utilisateur {
 export interface Categorie {
   id: number;
   nom: string;
+  description?: string | null;
+}
+
+export interface EvenementHistorique {
+  id: number;
+  objetId: number;
+  type: TypeEvenement;
+  libelle: string;
+  acteurId?: number | null;
+  statutCible?: StatutObjet | null;
+  date: string;
+}
+
+export interface DiagnosticObjet {
+  id: number;
+  objetId: number;
+  panneDeclaree?: string | null;
+  problemes?: string[];
+  analyse?: string | null;
+  diagnostic?: string | null;
+  date: string;
+}
+
+export interface RecommandationObjet {
+  action: string;
+  justification?: string | null;
+  coutReparationEstime?: number | null;
+  valeurApresReparationEstimee?: number | null;
+  economieEstimee?: number | null;
+}
+
+export interface DashboardStats {
+  totalObjets: number;
+  totalValeurEstimee: number;
+  parStatut: Record<string, number>;
+  parEtat: Record<string, number>;
+  totalDiagnostics: number;
+  totalEvenements: number;
 }
 
 /* ------------------------------------------------------------------ */

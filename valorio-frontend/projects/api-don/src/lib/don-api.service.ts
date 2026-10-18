@@ -41,8 +41,6 @@ export class DonApiService {
   private readonly http = inject(HttpClient);
   private readonly base = VALORIO_ENV.api.don;
 
-  readonly useStaticApis = VALORIO_ENV.useStaticApis;
-
   getObjet(id: number): Observable<Objet> {
     return this.http.get<Objet>(`${this.base}/api/objets/${id}`);
   }

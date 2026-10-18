@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: service-objets
+  datasource:
+    url: jdbc:postgresql://localhost:5432/valorio?currentSchema=objets
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:bilel}
+  flyway:
+    enabled: true
+    schemas: objets
+    default-schema: objets
+    create-schemas: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 30MB
+
+server:
+  port: 8085
+
+valorio:
+  auth:
+    base-url: ${AUTH_URL:http://localhost:8084}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SessionService, identiteUtilisateur } from './session';
-import { Utilisateur } from './models';
+import { SessionService } from './session';
 
 describe('SessionService', () => {
   let session: SessionService;
@@ -18,14 +17,19 @@ describe('SessionService', () => {
     expect(session.estAdmin()).toBeFalse();
   });
 
-  it('connecte un utilisateur et applique son libellé', () => {
-    const utilisateur: Utilisateur = { id: 7, nom: 'Amine', ville: 'Tunis' };
-    session.connecter(identiteUtilisateur(utilisateur, 'DONNEUR'));
+  it('connecte un utilisateur et applique son rôle', () => {
+    session.connecter({ role: 'UTILISATEUR', label: 'Amine', utilisateurId: 7 });
 
-    expect(session.role()).toBe('DONNEUR');
+    expect(session.role()).toBe('UTILISATEUR');
     expect(session.utilisateurId()).toBe(7);
-    expect(session.est('DONNEUR')).toBeTrue();
-    expect(session.est('BENEFICIAIRE')).toBeFalse();
+    expect(session.est('UTILISATEUR')).toBeTrue();
+    expect(session.est('ACHETEUR')).toBeFalse();
+  });
+
+  it('distingue les acteurs Acheteur et Réparateur', () => {
+    session.connecter({ role: 'ACHETEUR', label: 'Acheteur', utilisateurId: 9 });
+    expect(session.est('ACHETEUR')).toBeTrue();
+    expect(session.est('REPARATEUR', 'ORGANISME')).toBeFalse();
   });
 
   it('active les privilèges administrateur', () => {

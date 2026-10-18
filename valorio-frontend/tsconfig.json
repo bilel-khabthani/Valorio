@@ -24,6 +24,9 @@
       "@valorio/api-recyclage": [
         "./projects/api-recyclage/src/public-api.ts"
       ],
+      "@valorio/api-objets": [
+        "./projects/api-objets/src/public-api.ts"
+      ],
       "@valorio/feature-reparation": [
         "./projects/feature-reparation/src/public-api.ts"
       ],
@@ -32,6 +35,9 @@
       ],
       "@valorio/feature-recyclage": [
         "./projects/feature-recyclage/src/public-api.ts"
+      ],
+      "@valorio/feature-objets": [
+        "./projects/feature-objets/src/public-api.ts"
       ]
     },
     "importHelpers": true,
@@ -78,6 +84,12 @@
       "path": "./projects/api-recyclage/tsconfig.spec.json"
     },
     {
+      "path": "./projects/api-objets/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-objets/tsconfig.spec.json"
+    },
+    {
       "path": "./projects/feature-reparation/tsconfig.lib.json"
     },
     {
@@ -94,6 +106,12 @@
     },
     {
       "path": "./projects/feature-recyclage/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/feature-objets/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/feature-objets/tsconfig.spec.json"
     }
   ]
 }

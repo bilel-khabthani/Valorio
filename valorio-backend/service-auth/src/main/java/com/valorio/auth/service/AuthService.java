@@ -1,5 +1,6 @@
 package com.valorio.auth.service;
 
+import com.valorio.auth.domain.Acteur;
 import com.valorio.auth.domain.EmailVerificationToken;
 import com.valorio.auth.domain.PasswordResetToken;
 import com.valorio.auth.domain.RefreshToken;
@@ -86,6 +87,7 @@ public class AuthService {
                 request.nom().trim(),
                 request.prenom().trim(),
                 Role.USER, // Toujours USER par défaut pour la sécurité
+                request.acteur() == null ? Acteur.UTILISATEUR : request.acteur(),
                 true,
                 false, // Nécessite vérification optionnelle
                 null,

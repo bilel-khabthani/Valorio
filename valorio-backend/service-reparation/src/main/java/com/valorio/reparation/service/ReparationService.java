@@ -7,6 +7,7 @@ import com.valorio.reparation.domain.Reparateur;
 import com.valorio.reparation.domain.StatutDemande;
 import com.valorio.reparation.domain.StatutDevis;
 import com.valorio.reparation.domain.TransitionInterditeException;
+import com.valorio.reparation.external.ObjetEvenementPort;
 import com.valorio.reparation.external.ObjetPort;
 import com.valorio.reparation.external.UtilisateurPort;
 import com.valorio.reparation.repo.ReparationRepository;
@@ -23,15 +24,18 @@ public class ReparationService {
     private final ReparationRepository repository;
     private final ObjetPort objets;
     private final UtilisateurPort utilisateurs;
+    private final ObjetEvenementPort evenements;
     private final AuditLog audit;
 
     public ReparationService(ReparationRepository repository,
                              ObjetPort objets,
                              UtilisateurPort utilisateurs,
+                             ObjetEvenementPort evenements,
                              AuditLog audit) {
         this.repository = repository;
         this.objets = objets;
         this.utilisateurs = utilisateurs;
+        this.evenements = evenements;
         this.audit = audit;
     }
 
@@ -43,6 +47,8 @@ public class ReparationService {
 
         long id = repository.creerDemande(objetId, utilisateurId, descriptionPanne);
         repository.ajouterHistorique(id, StatutDemande.DEMANDE, "Création de la demande");
+        evenements.enregistrer(objetId, "REPARATION", "Demande de réparation déposée (demande " + id + ")",
+                utilisateurId, "EN_REPARATION");
         audit.enregistrer("DEMANDE_REPARATION_CREEE", "demande_reparation", id, "objet=" + objetId);
         return charger(id);
     }
@@ -62,6 +68,11 @@ public class ReparationService {
 
         repository.majStatut(demandeId, cible);
         repository.ajouterHistorique(demandeId, cible, commentaire);
+        if (cible == StatutDemande.TERMINEE) {
+            evenements.enregistrer(demande.objetId(), "REPARATION",
+                    "Réparation terminée (demande " + demandeId + ")",
+                    demande.reparateurId(), "REPARE");
+        }
         audit.enregistrer("DEMANDE_STATUT_MODIFIE", "demande_reparation", demandeId,
                 demande.statut() + " -> " + cible);
         return charger(demandeId);

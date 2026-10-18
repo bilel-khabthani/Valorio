@@ -160,8 +160,8 @@ import {
       @if (horsRole()) {
         <div class="card">
           <p class="empty">
-            Cette page concerne les rôles <strong>Bénéficiaire</strong> (demander l'objet) et
-            <strong>Donneur</strong> (traiter les demandes reçues). Changez de rôle dans la barre du haut.
+            Cette page concerne les rôles <strong>Acheteur</strong> (demander l'objet) et
+            <strong>Utilisateur</strong> (traiter les demandes reçues). Changez de rôle dans la barre du haut.
           </p>
         </div>
       }
@@ -184,8 +184,8 @@ export class AnnonceDetail implements OnInit {
   readonly enCours = signal(false);
 
   protected readonly estAdmin = this.session.estAdmin;
-  protected readonly espaceDonneur = computed(() => this.session.est('DONNEUR', 'ADMIN'));
-  protected readonly espaceBeneficiaire = computed(() => this.session.est('BENEFICIAIRE', 'ADMIN'));
+  protected readonly espaceDonneur = computed(() => this.session.est('UTILISATEUR', 'ADMIN'));
+  protected readonly espaceBeneficiaire = computed(() => this.session.est('ACHETEUR', 'ADMIN'));
   protected readonly horsRole = computed(
     () => !this.espaceDonneur() && !this.espaceBeneficiaire(),
   );

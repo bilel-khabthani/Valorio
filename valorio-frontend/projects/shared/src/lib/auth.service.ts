@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import {
+  Acteur,
   AuthResponse,
   ForgotPasswordRequest,
   LoginRequest,
@@ -11,6 +12,7 @@ import {
   ResetPasswordRequest,
   User,
   VerifyEmailRequest,
+  acteurDepuisRole,
 } from './auth-models';
 import { SessionService } from './session';
 
@@ -27,6 +29,13 @@ export class AuthService {
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._accessToken());
   readonly isAdmin = computed(() => this._currentUser()?.role === 'ADMIN');
+  readonly acteur = computed<Acteur | null>(() => {
+    const u = this._currentUser();
+    if (!u) {
+      return null;
+    }
+    return u.acteur ?? acteurDepuisRole(u.role);
+  });
   readonly userName = computed(() => {
     const u = this._currentUser();
     return u ? (u.nomComplet || `${u.prenom} ${u.nom}`).trim() : '';
@@ -100,19 +109,11 @@ export class AuthService {
 
     // Synchronisation transparente avec SessionService pour la compatibilité avec les modules métier
     if (this.sessionService) {
-      if (res.user.role === 'ADMIN') {
-        this.sessionService.connecter({
-          role: 'ADMIN',
-          label: res.user.nomComplet || `${res.user.prenom} ${res.user.nom}`,
-          utilisateurId: res.user.id,
-        });
-      } else {
-        this.sessionService.connecter({
-          role: 'UTILISATEUR',
-          label: res.user.nomComplet || `${res.user.prenom} ${res.user.nom}`,
-          utilisateurId: res.user.id,
-        });
-      }
+      this.sessionService.connecter({
+        role: res.user.acteur ?? acteurDepuisRole(res.user.role),
+        label: res.user.nomComplet || `${res.user.prenom} ${res.user.nom}`,
+        utilisateurId: res.user.id,
+      });
     }
   }
 

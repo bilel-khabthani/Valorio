@@ -48,8 +48,6 @@ export class RecyclageApiService {
   private readonly http = inject(HttpClient);
   private readonly base = VALORIO_ENV.api.recyclage;
 
-  readonly useStaticApis = VALORIO_ENV.useStaticApis;
-
   getObjet(id: number): Observable<Objet> {
     return this.http.get<Objet>(`${this.base}/api/objets/${id}`);
   }

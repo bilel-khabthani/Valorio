@@ -17,10 +17,20 @@
     "changeOrigin": true,
     "pathRewrite": { "^/rec": "" }
   },
+  "/objets/api": {
+    "target": "http://localhost:8085",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/objets": "" }
+  },
   "/api/auth": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/users": {
     "target": "http://localhost:8084",
     "secure": false,
     "changeOrigin": true
   }
 }
-

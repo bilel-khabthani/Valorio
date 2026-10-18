@@ -85,6 +85,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // Permet aux requêtes préliminaires CORS de passer
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Annuaire en lecture pour les appels serveur à serveur
+                        .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

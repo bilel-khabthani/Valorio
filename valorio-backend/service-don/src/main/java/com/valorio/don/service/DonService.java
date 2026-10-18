@@ -6,6 +6,7 @@ import com.valorio.don.domain.DemandeDon;
 import com.valorio.don.domain.StatutAnnonceDon;
 import com.valorio.don.domain.StatutDemandeDon;
 import com.valorio.don.domain.TransitionInterditeException;
+import com.valorio.don.external.ObjetEvenementPort;
 import com.valorio.don.external.ObjetPort;
 import com.valorio.don.external.UtilisateurPort;
 import com.valorio.don.external.model.ObjetRef;
@@ -23,12 +24,15 @@ public class DonService {
     private final DonRepository repository;
     private final ObjetPort objets;
     private final UtilisateurPort utilisateurs;
+    private final ObjetEvenementPort evenements;
     private final AuditLog audit;
 
-    public DonService(DonRepository repository, ObjetPort objets, UtilisateurPort utilisateurs, AuditLog audit) {
+    public DonService(DonRepository repository, ObjetPort objets, UtilisateurPort utilisateurs,
+                      ObjetEvenementPort evenements, AuditLog audit) {
         this.repository = repository;
         this.objets = objets;
         this.utilisateurs = utilisateurs;
+        this.evenements = evenements;
         this.audit = audit;
     }
 
@@ -44,6 +48,7 @@ public class DonService {
 
         long id = repository.creerAnnonce(objetId, donneurId, titre, description, conditions, ville,
                 latitude, longitude);
+        evenements.enregistrer(objetId, "DON", "Annonce de don publiée : " + titre, donneurId, "DISPONIBLE");
         audit.enregistrer("ANNONCE_DON_PUBLIEE", "annonce_don", id, "objet=" + objetId);
         return repository.findAnnonce(id).orElseThrow();
     }
@@ -163,6 +168,9 @@ public class DonService {
             repository.majStatutAnnonce(demande.annonceId(), StatutAnnonceDon.PUBLIEE);
         } else if (cible == StatutDemandeDon.CONFIRMEE) {
             repository.majStatutAnnonce(demande.annonceId(), StatutAnnonceDon.REMISE);
+            long objetId = detail(demande.annonceId()).objetId();
+            evenements.enregistrer(objetId, "DON", "Don remis au bénéficiaire (demande " + demandeId + ")",
+                    demande.beneficiaireId(), "DONNE");
         }
 
         audit.enregistrer("DEMANDE_DON_STATUT_MODIFIE", "demande_don", demandeId,

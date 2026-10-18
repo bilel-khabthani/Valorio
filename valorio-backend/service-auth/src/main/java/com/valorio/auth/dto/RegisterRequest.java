@@ -1,5 +1,6 @@
 package com.valorio.auth.dto;
 
+import com.valorio.auth.domain.Acteur;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -22,6 +23,8 @@ public record RegisterRequest(
 
         @NotBlank(message = "La confirmation du mot de passe est obligatoire")
         String confirmPassword,
+
+        Acteur acteur,
 
         @AssertTrue(message = "Vous devez accepter les conditions générales d'utilisation")
         boolean termsAccepted

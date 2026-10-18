@@ -48,7 +48,7 @@ class AuthControllerTest {
     @DisplayName("Endpoint /register retourne 201 avec le token et l'utilisateur")
     void registerSucces() throws Exception {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", null, true
         );
         UserResponse user = new UserResponse(1L, "amine@valorio.tn", "Ben Salah", "Amine", "Amine Ben Salah", Role.USER, false, true);
         AuthResponse authRes = AuthResponse.of("access_token_xyz", 900, user);
@@ -67,7 +67,7 @@ class AuthControllerTest {
     @DisplayName("Endpoint /register refuse les mots de passe trop courts (< 12 caractères)")
     void registerRefuseMotDePasseCourt() throws Exception {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Court1!", "Court1!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Court1!", "Court1!", null, true
         );
 
         mvc.perform(post("/api/auth/register")
@@ -81,7 +81,7 @@ class AuthControllerTest {
     @DisplayName("Endpoint /register refuse une requête avec email manquant ou invalide")
     void registerRefuseEmailInvalide() throws Exception {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "not-an-email", "Secret123456!", "Secret123456!", true
+                "Ben Salah", "Amine", "not-an-email", "Secret123456!", "Secret123456!", null, true
         );
 
         mvc.perform(post("/api/auth/register")
@@ -95,7 +95,7 @@ class AuthControllerTest {
     @DisplayName("Endpoint /register renvoie 409 Conflict si l'email existe déjà")
     void registerConflitEmailExistant() throws Exception {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", null, true
         );
 
         given(authService.register(any(RegisterRequest.class), any()))

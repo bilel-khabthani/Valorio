@@ -1,0 +1,484 @@
+openapi: 3.0.3
+info:
+  title: Valorio - API Objets
+  description: Contrat du module 2 (Gestion des objets) - service-objets (:8085). Registre des objets (déclaration, catégorisation, cycle de vie, photos), diagnostic, recommandation et statistiques. Source de vérité des entités externes (`Objet`, `Categorie`) consommées par les modules Don, Recyclage et Réparation, qui lui remontent leurs transitions via `POST /api/objets/{objetId}/historique`.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8085
+tags:
+  - name: objets
+    description: 2.1 Déclaration, catalogue et cycle de vie
+  - name: photos
+    description: 2.2 Gestion des photos
+  - name: historique
+    description: 2.3 Historique et remontée inter-services
+  - name: categories
+    description: 2.4 Catégories
+  - name: diagnostic
+    description: 2.5 Diagnostic des objets
+  - name: recommandation
+    description: 2.6 Recommandation (réparer / revendre / donner / recycler)
+  - name: stats
+    description: 2.7 Tableau de bord
+paths:
+  /api/objets:
+    get:
+      tags: [objets]
+      summary: Catalogue des objets (filtres)
+      parameters:
+        - name: categorieId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: etat
+          in: query
+          schema: { $ref: "#/components/schemas/EtatObjet" }
+        - name: ville
+          in: query
+          schema: { type: string }
+        - name: statut
+          in: query
+          schema: { $ref: "#/components/schemas/StatutObjet" }
+        - name: q
+          in: query
+          description: Recherche plein texte sur intitulé et description
+          schema: { type: string }
+      responses:
+        "200":
+          description: Objets correspondants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Objet" }
+    post:
+      tags: [objets]
+      summary: 2.1 Déclarer un objet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObjetRequest" }
+      responses:
+        "201":
+          description: Objet déclaré
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "400": { $ref: "#/components/responses/Validation" }
+  /api/objets/villes:
+    get:
+      tags: [objets]
+      summary: Villes présentes dans le registre
+      responses:
+        "200":
+          description: Liste des villes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+  /api/objets/{objetId}:
+    get:
+      tags: [objets]
+      summary: Consulter un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Objet trouvé
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [objets]
+      summary: Modifier un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObjetRequest" }
+      responses:
+        "200":
+          description: Objet modifié
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [objets]
+      summary: Supprimer un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "204": { description: Objet supprimé }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/objets/{objetId}/statut:
+    put:
+      tags: [objets]
+      summary: 2.1 Changer le statut (machine à états)
+      description: Transitions autorisées - DECLARE → DISPONIBLE/EN_REPARATION/VENDU/DONNE/RECYCLE ; DISPONIBLE → EN_REPARATION/VENDU/DONNE/RECYCLE ; EN_REPARATION → REPARE/DISPONIBLE ; REPARE → DISPONIBLE/VENDU/DONNE. Les statuts VENDU, DONNE et RECYCLE sont terminaux.
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+        - name: acteurId
+          in: query
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StatutRequest" }
+      responses:
+        "200":
+          description: Objet mis à jour
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /api/objets/{objetId}/photos:
+    post:
+      tags: [photos]
+      summary: 2.2 Ajouter des photos
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photos]
+              properties:
+                photos:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        "201":
+          description: Objet avec photos mises à jour
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Objet" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/objets/{objetId}/photos/{photoId}:
+    delete:
+      tags: [photos]
+      summary: Supprimer une photo
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+        - $ref: "#/components/parameters/PhotoId"
+      responses:
+        "204": { description: Photo supprimée }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/objets/{objetId}/historique:
+    get:
+      tags: [historique]
+      summary: 2.3 Consulter l'historique d'un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Événements de l'objet
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/EvenementHistorique" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [historique]
+      summary: 2.3 Remonter un événement (modules Don / Recyclage / Réparation)
+      description: Point d'entrée inter-services. Le service-objets journalise l'événement et applique `statutCible` si fourni (transition validée par la machine à états). Les autres services appellent cet endpoint via leur adaptateur `integ`.
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HistoriqueRequest" }
+      responses:
+        "201":
+          description: Événement enregistré
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EvenementHistorique" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /api/objets/{objetId}/diagnostics:
+    get:
+      tags: [diagnostic]
+      summary: Lister les diagnostics d'un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Diagnostics enregistrés
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DiagnosticObjet" }
+    post:
+      tags: [diagnostic]
+      summary: 2.5 Diagnostiquer un objet
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DiagnosticRequest" }
+      responses:
+        "201":
+          description: Diagnostic produit
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DiagnosticObjet" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/objets/{objetId}/recommandation:
+    get:
+      tags: [recommandation]
+      summary: 2.6 Recommander une orientation
+      description: Calcule l'orientation REPARER, REVENDRE, DONNER ou RECYCLER à partir du dernier diagnostic (coût de réparation ≈ 30 % de la valeur estimée, seuil 100 DT, matériaux valorisables).
+      parameters:
+        - $ref: "#/components/parameters/ObjetId"
+      responses:
+        "200":
+          description: Recommandation calculée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Recommandation" }
+        "404":
+          description: Objet introuvable ou aucun diagnostic disponible
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetail" }
+  /api/categories:
+    get:
+      tags: [categories]
+      summary: Lister les catégories
+      responses:
+        "200":
+          description: Catégories disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Categorie" }
+    post:
+      tags: [categories]
+      summary: Créer une catégorie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategorieRequest" }
+      responses:
+        "201":
+          description: Catégorie créée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Categorie" }
+        "400": { $ref: "#/components/responses/Validation" }
+  /api/categories/{categorieId}:
+    get:
+      tags: [categories]
+      summary: Consulter une catégorie
+      parameters:
+        - $ref: "#/components/parameters/CategorieId"
+      responses:
+        "200":
+          description: Catégorie trouvée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Categorie" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/stats:
+    get:
+      tags: [stats]
+      summary: 2.7 Statistiques du registre
+      responses:
+        "200":
+          description: Tableau de bord
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardStats" }
+components:
+  parameters:
+    ObjetId:
+      name: objetId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CategorieId:
+      name: categorieId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    PhotoId:
+      name: photoId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+    Validation:
+      description: Requête invalide
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+    Conflict:
+      description: Transition de statut interdite
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetail" }
+  schemas:
+    EtatObjet:
+      type: string
+      enum: [NEUF, BON, ENDOMMAGE, HORS_SERVICE]
+    StatutObjet:
+      type: string
+      enum: [DECLARE, DISPONIBLE, EN_REPARATION, REPARE, VENDU, DONNE, RECYCLE]
+    TypeEvenement:
+      type: string
+      enum: [DECLARATION, MODIFICATION, PHOTO, DIAGNOSTIC, STATUT, REPARATION, TRANSACTION, DON, RECYCLAGE]
+    Objet:
+      type: object
+      required: [id, intitule, categorieId, etat, statut]
+      properties:
+        id: { type: integer, format: int64 }
+        intitule: { type: string }
+        description: { type: string, nullable: true }
+        categorieId: { type: integer, format: int64 }
+        etat: { $ref: "#/components/schemas/EtatObjet" }
+        ageAnnees: { type: integer, nullable: true }
+        valeurEstimee: { type: number, format: double, nullable: true }
+        ville: { type: string, nullable: true }
+        latitude: { type: number, format: double, nullable: true }
+        longitude: { type: number, format: double, nullable: true }
+        materiaux:
+          type: array
+          items: { type: string }
+        proprietaireId: { type: integer, format: int64 }
+        statut: { $ref: "#/components/schemas/StatutObjet" }
+        photos:
+          type: array
+          items: { type: string }
+        dateDeclaration: { type: string, format: date-time, nullable: true }
+        dateMaj: { type: string, format: date-time, nullable: true }
+    ObjetRequest:
+      type: object
+      required: [intitule, categorieId, etat, proprietaireId]
+      properties:
+        intitule: { type: string }
+        description: { type: string }
+        categorieId: { type: integer, format: int64 }
+        etat: { $ref: "#/components/schemas/EtatObjet" }
+        ageAnnees: { type: integer, minimum: 0 }
+        valeurEstimee: { type: number, format: double, minimum: 0 }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        materiaux:
+          type: array
+          items: { type: string }
+        proprietaireId: { type: integer, format: int64 }
+    StatutRequest:
+      type: object
+      required: [statut]
+      properties:
+        statut: { $ref: "#/components/schemas/StatutObjet" }
+        commentaire: { type: string }
+    EvenementHistorique:
+      type: object
+      required: [id, objetId, type, libelle]
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        type: { $ref: "#/components/schemas/TypeEvenement" }
+        libelle: { type: string }
+        acteurId: { type: integer, format: int64, nullable: true }
+        statutCible: { $ref: "#/components/schemas/StatutObjet" }
+        date: { type: string, format: date-time }
+    HistoriqueRequest:
+      type: object
+      required: [type, libelle]
+      properties:
+        type: { $ref: "#/components/schemas/TypeEvenement" }
+        libelle: { type: string }
+        acteurId: { type: integer, format: int64, nullable: true }
+        statutCible: { $ref: "#/components/schemas/StatutObjet" }
+    DiagnosticObjet:
+      type: object
+      required: [id, objetId]
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        panneDeclaree: { type: string, nullable: true }
+        problemes:
+          type: array
+          items: { type: string }
+        analyse: { type: string, nullable: true }
+        diagnostic: { type: string, nullable: true }
+        date: { type: string, format: date-time }
+    DiagnosticRequest:
+      type: object
+      properties:
+        panneDeclaree: { type: string }
+        problemes:
+          type: array
+          items: { type: string }
+    Recommandation:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [REPARER, REVENDRE, DONNER, RECYCLER] }
+        justification: { type: string, nullable: true }
+        coutReparationEstime: { type: number, format: double, nullable: true }
+        valeurApresReparationEstimee: { type: number, format: double, nullable: true }
+        economieEstimee: { type: number, format: double, nullable: true }
+    DashboardStats:
+      type: object
+      properties:
+        totalObjets: { type: integer, format: int64 }
+        totalValeurEstimee: { type: integer, format: int64 }
+        parStatut:
+          type: object
+          additionalProperties: { type: integer, format: int64 }
+        parEtat:
+          type: object
+          additionalProperties: { type: integer, format: int64 }
+        totalDiagnostics: { type: integer, format: int64 }
+        totalEvenements: { type: integer, format: int64 }
+    Categorie:
+      type: object
+      required: [id, nom]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        description: { type: string, nullable: true }
+    CategorieRequest:
+      type: object
+      required: [nom]
+      properties:
+        nom: { type: string }
+        description: { type: string }
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

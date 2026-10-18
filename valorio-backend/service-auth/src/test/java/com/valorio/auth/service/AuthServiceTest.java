@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.valorio.auth.domain.Acteur;
 import com.valorio.auth.domain.EmailVerificationToken;
 import com.valorio.auth.domain.PasswordResetToken;
 import com.valorio.auth.domain.RefreshToken;
@@ -73,7 +74,7 @@ class AuthServiceTest {
     @DisplayName("Inscription réussie d'un nouvel utilisateur avec rôle USER")
     void inscriptionReussie() {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", Acteur.UTILISATEUR, true
         );
         HttpServletResponse response = mock(HttpServletResponse.class);
 
@@ -88,6 +89,7 @@ class AuthServiceTest {
         assertThat(res).isNotNull();
         assertThat(res.accessToken()).isNotBlank();
         assertThat(res.user().role()).isEqualTo(Role.USER);
+        assertThat(res.user().acteur()).isEqualTo(Acteur.UTILISATEUR);
         assertThat(res.user().email()).isEqualTo("amine@valorio.tn");
 
         verify(emailService).sendVerificationEmail(eq("amine@valorio.tn"), anyString());
@@ -98,7 +100,7 @@ class AuthServiceTest {
     @DisplayName("Rejette l'inscription si l'adresse email existe déjà")
     void rejetteEmailExistant() {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "Secret123456!", Acteur.UTILISATEUR, true
         );
         given(userRepository.existsByEmail("amine@valorio.tn")).willReturn(true);
 
@@ -111,7 +113,7 @@ class AuthServiceTest {
     @DisplayName("Rejette l'inscription si les mots de passe ne correspondent pas")
     void rejetteMotsDePasseDifferents() {
         RegisterRequest req = new RegisterRequest(
-                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "AutreMotDePasse123!", true
+                "Ben Salah", "Amine", "amine@valorio.tn", "Secret123456!", "AutreMotDePasse123!", Acteur.UTILISATEUR, true
         );
 
         assertThatThrownBy(() -> authService.register(req, null))

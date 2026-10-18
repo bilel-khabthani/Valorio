@@ -60,6 +60,15 @@
       </div>
 
       <div class="form-group">
+        <label for="reg-acteur">Je m'inscris en tant que *</label>
+        <select id="reg-acteur" name="acteur" [(ngModel)]="acteur" required>
+          @for (a of acteurs; track a) {
+            <option [value]="a">{{ libelleActeur[a] }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
         <label for="reg-password">Mot de passe (minimum 12 caractères) *</label>
         <div class="input-password-wrapper">
           <input

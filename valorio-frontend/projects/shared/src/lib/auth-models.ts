@@ -1,5 +1,28 @@
 export type UserRole = 'USER' | 'ADMIN';
 
+/** Les 5 acteurs métier du CDC Valorio. */
+export type Acteur = 'UTILISATEUR' | 'REPARATEUR' | 'ACHETEUR' | 'ORGANISME' | 'ADMIN';
+
+export const ACTEURS: readonly Acteur[] = [
+  'UTILISATEUR',
+  'REPARATEUR',
+  'ACHETEUR',
+  'ORGANISME',
+  'ADMIN',
+];
+
+export const LIBELLES_ACTEUR: Record<Acteur, string> = {
+  UTILISATEUR: 'Utilisateur',
+  REPARATEUR: 'Réparateur',
+  ACHETEUR: 'Acheteur',
+  ORGANISME: 'Organisme de recyclage',
+  ADMIN: 'Administrateur',
+};
+
+export function acteurDepuisRole(role: UserRole | undefined | null): Acteur {
+  return role === 'ADMIN' ? 'ADMIN' : 'UTILISATEUR';
+}
+
 export interface User {
   id: number;
   email: string;
@@ -7,6 +30,7 @@ export interface User {
   prenom: string;
   nomComplet: string;
   role: UserRole;
+  acteur?: Acteur;
   emailVerifie: boolean;
   actif: boolean;
 }
@@ -17,6 +41,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
+  acteur?: Acteur;
   termsAccepted: boolean;
 }
 
@@ -56,4 +81,3 @@ export interface MessageResponse {
   success: boolean;
   devLink?: string;
 }
-

@@ -24,19 +24,31 @@ $env:PGPASSWORD='bilel'
 psql -U postgres -c "CREATE DATABASE valorio;"
 ```
 
-Backend (3 terminaux, laisser tourner) :
+Backend (5 terminaux, laisser tourner) :
 
 ```powershell
 mvn -f valorio-backend/service-reparation spring-boot:run   # http://localhost:8081
 mvn -f valorio-backend/service-don spring-boot:run          # http://localhost:8082
 mvn -f valorio-backend/service-recyclage spring-boot:run    # http://localhost:8083
+mvn -f valorio-backend/service-auth spring-boot:run         # http://localhost:8084
+mvn -f valorio-backend/service-objets spring-boot:run       # http://localhost:8085
+```
+
+Collaboration inter-services (toujours active, plus aucune fixture) : les services métier appellent
+`service-objets` (8085) et `service-auth` (8084) en HTTP. Démarrage conseillé : `service-auth` et
+`service-objets` d'abord. Les URLs restent surchargeables :
+
+```powershell
+$env:OBJETS_URL='http://localhost:8085'
+$env:AUTH_URL='http://localhost:8084'
+mvn -f valorio-backend/service-don spring-boot:run
 ```
 
 Frontend :
 
 ```powershell
 cd valorio-frontend
-npx ng serve          # http://localhost:4200, proxy /rep /don /rec vers 8081/8082/8083
+npx ng serve          # http://localhost:4200, proxy /rep /don /rec /objets + /api/auth + /api/users vers 8081-8085
 ```
 
 Vérifications rapides :
@@ -183,4 +195,61 @@ Invoke-RestMethod http://localhost:4200/rep/api/objets/1   # via proxy Angular
 - **Interface utilisateur épurée et conforme** : Suppression complète des pages artificielles « Assistant IA » et « Qualité et tests » du frontend. L'application ValorIO conserve son identité métier de gestion d'objets perdus/trouvés et de réemploi.
 - **Exigences pédagogiques 1 & 2 intégralement satisfaites** : Démonstration concrète de l'usage de l'IA dans l'architecture, la génération, l'adaptation et la sécurisation du module Auth (JWT, BCrypt 12, Signals réactifs, SMTP asynchrone), validée par 35 tests automatisés JUnit 5 et 23 tests Jasmine.
 - **Documentation académique** : Disponible dans [docs/auth-ai-methodology.md](docs/auth-ai-methodology.md).
+
+---
+
+## Phase S7 — Module 2 « Gestion des objets » & Collaboration inter-services
+
+| Date | Phase | Tâche | Outil | Technique IA | Prompt (résumé) | Résultat IA | Adaptation humaine | Tests générés | Anomalie détectée → correctif | Métrique |
+| ---- | ----- | ----- | ----- | ------------ | --------------- | ----------- | ------------------ | ------------- | ----------------------------- | -------- |
+| 2026-10-18 | S7 | Backend Objets | Microservice `service-objets` (domaine + persistance) | opencode | Réécriture contract-first du module legacy `objets/` en microservice Boot 3.3 | « Crée `service-objets` (port 8085, schéma `objets`) : domaine `Objet`/`Categorie`/`EtatObjet`/machine à états `StatutObjet`/`DiagnosticObjet`/`Recommandation`/`EvenementHistorique`, DTOs, repositories `JdbcClient`, Flyway `V1__init.sql` + `V2__objets_s1.sql` (5 catégories, 5 objets, historique DECLARATION) » | Domaine enrichi (transitions `DECLARE→DISPONIBLE→EN_REPARATION→REPARE→VENDU/DONNE/RECYCLE`), 5 repositories, 2 migrations, seeds id 1-5 alignés sur les fixtures des autres services | Conservation du vocabulaire métier français et des conventions dépôt (`JdbcClient`, records, ProblemDetail, `AuditLog`) | `StatutObjetTest`, `RecommandationServiceTest`, `AnalyseDiagnosticTest`, `ObjetControllerTest` | **PostgreSQL réserve `analyse`** comme mot-clé → colonne systématiquement quotée (`"analyse"`) ; blocs texte Java perdant l'espace final → bug `SELECTid` corrigé par concaténation explicite | 22 tests backend verts |
+| 2026-10-18 | S7 | Backend Objets | API REST, diagnostic, recommandation & statistiques | opencode | Exposition RFC 7807 et upload de photos | « Expose `/api/objets` (filtres catégorie/état/ville/statut/recherche, CRUD, `/statut`, `/photos`, `/historique`, `/villes`), `/api/categories`, `/api/objets/{id}/diagnostics`, `/api/objets/{id}/recommandation`, `/api/stats` et le service statique `/uploads/**` » | `ObjetController`, `DiagnosticController`, `CategorieController`, `RecommandationController`, `StatsController`, `UtilisateurController`, `FileStorageService`, `config/WebConfig` ; recommandation REPARER/REVENDRE/DONNER/RECYCLER (coût ≈ 30 % de la valeur, seuil 100 DT) | Seuil et matériaux valorisables alignés sur `RegleRecyclabilite` du service-recyclage | Smoke live vs PostgreSQL : santé UP, 5 objets, reco objet 1 = `REPARER`, stats total=5 valeur=1275, garde 409 `DECLARE→REPARE` | Table `historique` alimentée manuellement ; garde de transition 409 pour les flux `DON`/`RECYCLAGE`/`REPARATION` | 5 contrôleurs, 1 service de fichiers |
+| 2026-10-18 | S7 | Backend Auth | Profil utilisateur exposé aux autres services | opencode | Migration Flyway additive + endpoint public de lecture | « Ajoute `V2__user_profile.sql` (ville/latitude/longitude/score_reputation), étends `User`/`UserResponse`, crée `GET /api/users` et `/api/users/{id}`, et ouvre ces lectures en `permitAll` » | Colonnes de profil + seeds (admin, amine, sara, karim), constructeur de compatibilité 10 args, `UserController` avec 404 ProblemDetail, `SecurityConfig` public sur `GET /api/users/**` | Annexe `SELECT ` concaténé (`COLONNES`) au lieu d'un bloc texte pour éviter la perte d'espace après `SELECT` | 35 tests backend verts (dont nouvelles routes) | `ApiExceptionHandler` renforcé : journalisation `log.error` de toute erreur non gérée | 1 migration, 1 contrôleur, 2 records étendus |
+| 2026-10-18 | S7 | Backend Intégration | Adaptateurs `integ` + remontée d'historique | opencode | Pattern ports/adapters avec profils Spring et `RestClient` | « Remplace les adaptateurs statiques des services don/recyclage/reparation par des appels HTTP réels (`ObjetPort`, `UtilisateurPort`, `CategoriePort`) et propage les transitions métier vers le service-objets via `POST /api/objets/{id}/historique` » | 6 fichiers `external/` par service (`IntegObjetAdapter`, `IntegUtilisateurAdapter`, `IntegCategorieAdapter`, `ObjetEvenementPort`, `StaticObjetEvenementAdapter`, `IntegObjetEvenementAdapter`) ; remontées : don `DON`/`DISPONIBLE` et `DON`/`DONNE`, recyclage `RECYCLAGE` (sans statut puis `RECYCLE`), reparation `REPARATION`/`EN_REPARATION` puis `REPARATION`/`REPARE` | Échec de remontée journalisé en `warn` et **jamais propagé** pour ne pas casser la transaction locale ; URLs `valorio.objets.base-url`/`valorio.auth.base-url` paramétrables (`OBJETS_URL`/`AUTH_URL`) | 33 tests backend verts sur les 3 services (13 don, 11 recyclage, 9 reparation) | Payload initial `Map.of` envoyant `""` pour `acteurId` (Long) et `statutCible` (enum) → risque de désérialisation Jackson → remplacé par un record typé `EvenementPayload` autorisant les `null` | 18 fichiers créés, 3 services, 3 services/services modifiés |
+| 2026-10-18 | S7 | Frontend Objets | Libs `@valorio/api-objets` et `@valorio/feature-objets` | opencode | Libs Angular 20 autonomes, signals et templates inline | « Crée `api-objets` (client HTTP complet : objets, catégories, diagnostics, recommandation, stats, photos multipart, utilisateurs) et `feature-objets` (registre filtrable, déclaration, page détail avec diagnostic, recommandation, cycle de vie et historique) » | `ObjetsApiService`, `FeatureObjetsHome`, `ObjetDetail`, routes lazy `''` et `objet/:id`, modèles `StatutObjet`/`TypeEvenement`/`DiagnosticObjet`/`RecommandationObjet`/`DashboardStats` ajoutés à `@valorio/shared` | Ajout des entrées `environment.api.objets`/`users`, proxy `/objets/api` → 8085 et `/api/users` → 8084, `tsconfig`/`angular.json` complétés, lien `Objets` dans le shell | `objets-api.service.spec.ts` (3 specs), `feature-objets.spec.ts` (1 spec), `ng build` production vert | Les photos de l'API sont des URLs (pas d'identifiant exposé) → suppression de photo retirée de l'UI, seuls ajout et affichage sont proposés | 2 libs, 12 fichiers, **4 specs front** vertes (build 8,9 s) |
+| 2026-10-18 | S7 | QA & Documentation | Refactor `SELECT` auth, contrat OpenAPI et journal | opencode | Vérification multi-modules et contrats | « Documente le contrat `objets.openapi.yaml`, mets à jour les commandes de lancement (8084/8085, profil `integ`) et consigne la phase S7 » | `valorio-contracts/objets.openapi.yaml`, section de lancement étendue (`service-auth`, `service-objets`, `SPRING_PROFILES_ACTIVE=integ`), phase S7 du journal | Suppression du dossier legacy `objets/` après bascule complète sur le microservice | Vérification finale : tests backend des 5 services + build/tests frontend | Le service-don tournait en profil par défaut (fixtures) → activation `integ` documentée pour la collaboration réelle | **120 tests** cumulés (90 backend + 30 front exécutés) |
+
+### Bilan S7
+
+- **Module 2 industrialisé** : Le module legacy `objets/` est remplacé par un microservice Boot 3.3 dédié (port 8085, schéma `objets`) exposant déclaration, catégorisation, cycle de vie, diagnostic, recommandation (REPARER/REVENDRE/DONNER/RECYCLER), statistiques et gestion des photos.
+- **Collaboration inter-services réelle** : Les services Don, Recyclage et Réparation consomment désormais le service-objets via HTTP (`RestClient`, profil `integ`) et lui remontent chaque transition métier dans l'historique, en remplacement des anciennes fixtures statiques.
+- **Profil utilisateur unifié** : `service-auth` expose `/api/users` (ville, score de réputation) et alimente les référentiels des trois services métier.
+- **Frontend intégré** : Deux nouvelles libs (`@valorio/api-objets`, `@valorio/feature-objets`) offrent le registre des objets, la déclaration, la page détail avec diagnostic, recommandation et chronologie du cycle de vie, accessibles depuis la navigation principale.
+- **Qualité** : 22 tests `service-objets`, 35 tests `service-auth`, 33 tests sur les services métier, 4 specs frontend pour les nouvelles libs, build Angular de production et contrat OpenAPI validés.
+
+---
+
+## Phase S8 — Suppression de toutes les données statiques (tout dynamique)
+
+| Date | Phase | Tâche | Outil | Technique IA | Prompt (résumé) | Résultat IA | Adaptation humaine | Tests générés | Anomalie détectée → correctif | Métrique |
+| ---- | ----- | ----- | ----- | ------------ | --------------- | ----------- | ------------------ | ------------- | ----------------------------- | -------- |
+| 2026-10-18 | S8 | Backend Transverse | Retrait des fixtures + adaptateurs statiques | opencode | Suppression guidée par la décision « tout dynamique » | « Supprime toutes les données statiques en dur : adaptateurs `Static*Adapter`, `FixtureLoader` et `fixtures/*.json` des services don/recyclage/reparation/objets, puis rends les adaptateurs `Integ*` toujours actifs (plus de profil Spring) » | Suppression de 10 `fixtures/*.json`, 14 classes `Static*Adapter`/`FixtureLoader` et 3 `StaticObjetAdapterTest` ; `@Profile("integ")` retiré des 13 adaptateurs `Integ*` (ils sont désormais les seuls beans) ; javadocs réalignés | Choix de conserver les données de démo **en base** (migrations Flyway `V2__*_s1.sql`) : les services restent 100 % dynamiques (PostgreSQL + HTTP inter-services) sans base vide | Tests backend des 5 services verts (les `@WebMvcTest` mockent les ports → aucune dépendance réseau pendant les tests) | Les 409 du smoke live (réparation sans réparateur assigné, objet non recyclable) étaient des **règles métier légitimes**, pas des bugs d'intégration → parcours smoke corrigé (devis → acceptation pour la réparation, objet recyclable pour le recyclage) | 27 fichiers supprimés, 13 adaptateurs rendus permanents, 0 fixture restante |
+| 2026-10-18 | S8 | Frontend | Retrait du flag mort `useStaticApis` | opencode | Nettoyage guidé par la lecture du code | « Retire le flag `useStaticApis` de l'environnement et ses références (les clients HTTP appelaient déjà le backend en toutes circonstances) » | `environment.ts`, `environment.spec.ts` et les 3 services API (`api-don`, `api-reparation`, `api-recyclage`) nettoyés | Suppression d'un bouton/indicateur trompeur : le front est désormais explicitement « full HTTP » | `ng build` production vert, specs `shared`/API vertes | Flag `useStaticApis` exposé mais jamais utilisé pour brancher des données → code mort supprimé | 5 fichiers, 1 spec retirée |
+
+### Bilan S8
+
+- **Zéro donnée statique dans le code** : les fixtures JSON, `FixtureLoader` et adaptateurs `Static*Adapter` sont supprimés ; les services métier lisent systématiquement le `service-objets` (8085) et le `service-auth` (8084) par HTTP, et l'historique des objets est remonté à chaque transition.
+- **Configuration simplifiée** : plus de profil `integ` à activer — la collaboration inter-services est le mode par défaut, les endpoints restant surchargeables via `OBJETS_URL` / `AUTH_URL`.
+- **Données de démo** : conservées uniquement en base via les migrations Flyway (`V2__*_s1.sql`), conformément au choix « tout dynamique côté application ».
+- **Vérification** : parcours bout-en-bout rejoués (objet 3 → `DONNE`, objet 4 → `REPARE`, objet 1 → `RECYCLE`), 5 services packagés, front build/tests verts.
+
+---
+
+## Phase S9 — UI par acteur (les 5 acteurs du CDC)
+
+| Date | Phase | Tâche | Outil | Technique IA | Prompt (résumé) | Résultat IA | Adaptation humaine | Tests générés | Anomalie détectée → correctif | Métrique |
+| ---- | ----- | ----- | ----- | ------------ | --------------- | ----------- | ------------------ | ------------- | ----------------------------- | -------- |
+| 2026-10-18 | S9 | Backend Auth | Champ `acteur` sur le compte | opencode | Migration Flyway additive + enum métier | « Ajoute un acteur réel au compte (5 acteurs du CDC) : enum `Acteur`, colonne `acteur` en base, propagation dans `User`/`UserRepository`/`RegisterRequest`/`UserResponse`/`AuthService`, et un compte de démonstration par acteur » | Enum `Acteur{UTILISATEUR,REPARATEUR,ACHETEUR,ORGANISME,ADMIN}`, migration `V3__user_acteur.sql` (colonne NOT NULL DEFAULT `UTILISATEUR`, affectation des seeds admin/amine/sara/karim, nouveau compte Acheteur `nadia.mansouri@example.com`), DTOs et repo étendus | Constructeurs de compatibilité 10/11 args conservés pour ne pas casser les tests existants ; `ADMIN` jamais auto-attribué (`Acteur.depuis` retombe sur `UTILISATEUR`) | 35 tests `service-auth` verts (8 `AuthServiceTest`, 8 `AuthControllerTest`) | `RegisterRequest` gagne un composant `acteur` → 7 appels de constructeur dans les tests à réaligner | 1 enum, 1 migration, 6 fichiers, 35 tests |
+| 2026-10-18 | S9 | Frontend Shared | Modèle d'acteurs & accueil par acteur | opencode | Union types + signals + guards de routage | « Modélise les 5 acteurs côté front : `Acteur`/`ACTEURS`/`LIBELLES_ACTEUR`, champ `acteur` sur `User`, `SessionService` réduit aux 5 acteurs, `AuthService.acteur` calculé, et guards `acteurGuard`/`accueilGuard` » | `auth-models.ts` (type `Acteur`), `session.ts` (5 acteurs, `ACCUEIL_PAR_ACTEUR`, `routeAccueil`), `auth.service.ts` (signal `acteur`), `auth.guard.ts` (`acteurGuard`, `accueilGuard`) | `RoleActeur = Acteur` (source unique) ; `roleGuard` hérité conservé pour compatibilité | `shared` : 13 specs vertes (dont `session.spec` acteur Acheteur/Réparateur) | Les rôles métier `DONNEUR`/`BENEFICIAIRE` des modules don n'existaient plus → remappés | 4 fichiers partagés, 13 specs |
+| 2026-10-18 | S9 | Frontend Shell | Espaces dédiés & navigation filtrée par acteur | opencode | Pages standalone + guards de route + `computed` | « Crée un espace d'accueil par acteur (`/utilisateur`, `/reparateur`, `/acheteur`, `/organisme`, `/admin`) avec redirection post-connexion vers l'espace de l'acteur, navigation adaptée à l'acteur connecté, et choix de l'acteur à l'inscription » | 5 composants d'espace + `AccueilComponent` (racine `''` sous `accueilGuard`), `app.routes.ts`, `app.ts` (`navModules`, `libelleActeur`, `accueil`), `app.html` (nav + badge), redirections `login`/`register` par acteur, sélecteur d'acteur au register | Page Acheteur = placeholder « Marketplace à venir » (Module 5 non implémenté) ; gating features don remappé `DONNEUR`→`UTILISATEUR` et `BENEFICIAIRE`→`ACHETEUR` | `valorio-frontend` : 10 specs vertes ; `feature-don`/`feature-reparation`/`feature-recyclage` verts ; `ng build` production vert | Les textes d'aide des pages don citaient les anciens rôles → réécrits (Utilisateur/Acheteur) | 6 composants, 4 fichiers shell, 10 specs |
+| 2026-10-18 | S9 | Frontend Shell | Retrait du simulateur d'acteurs | opencode | Suppression guidée par le principe « tout par rôle » | « Supprime le sélecteur "Simulation Acteurs Métier" du shell : l'interface ne dépend plus que de l'acteur authentifié » | Retrait du bouton 🎭, de la barre de simulation, des états `roleChoisi`/`identiteChoisie`/`afficherSelecteurSimulation`, des appels `ReparationApiService`/`RecyclageApiService` du shell, des helpers `identite*`/`IDENTITE_ADMIN` de `@valorio/shared` et des styles CSS associés | La session métier (`SessionService`) est désormais alimentée uniquement par `AuthService` (login/refresh) | `shared` 13 specs, `valorio-frontend` 10 specs, `ng build` vert (bundle 351 → 304 kB) | Le simulateur pilotait une session parallèle à l'acteur réel (source de confusion) → supprimé au profit du seul acteur authentifié | 6 fichiers nettoyés |
+
+### Bilan S9
+
+- **Cinq acteurs réels** : Le compte porte désormais un `acteur` (Utilisateur, Réparateur, Acheteur, Organisme de recyclage, Administrateur) choisi à l'inscription (ou en base pour les comptes de démo), retourné par `/api/auth/login` et `/api/users` — un compte de démonstration par acteur, dont un nouveau profil Acheteur.
+- **Expérience adaptée par acteur** : chaque acteur dispose de son espace (`/utilisateur`, `/reparateur`, `/acheteur`, `/organisme`, `/admin`) ; après connexion, l'utilisateur est redirigé vers son espace et la navigation principale n'affiche que les modules pertinents.
+- **Routes protégées par acteur** : `accueilGuard` et `acteurGuard` empêchent l'accès aux espaces des autres acteurs (l'Administrateur accède à tout) ; l'Acheteur voit la page « Marketplace à venir » (Module 5 à venir).
+- **Qualité** : 35 tests `service-auth` verts (backend inchangé côté comptage), 13 specs `shared` et 10 specs de l'application Angular vertes, build de production sans erreur ; smoke live après redémarrage (`/api/users` renvoie 5 comptes avec acteur, `login` renvoie l'acteur, `/api/utilisateurs` du service-don lit 5 utilisateurs).
+- **100 % piloté par le rôle** : le sélecteur « Simulation Acteurs Métier » (bouton 🎭 et barre dédiée) est supprimé ; l'interface, la navigation et les espaces dépendent exclusivement de l'acteur authentifié, sans mécanisme de simulation parallèle.
+
 

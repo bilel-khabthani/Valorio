@@ -214,8 +214,8 @@ import {
       @if (horsRole()) {
         <div class="card">
           <p class="empty">
-            Cette page concerne les rôles <strong>Donneur</strong> (publier/suivre vos annonces) et
-            <strong>Bénéficiaire</strong> (demander un objet). Changez de rôle dans la barre du haut.
+            Cette page concerne les rôles <strong>Utilisateur</strong> (publier/suivre vos annonces) et
+            <strong>Acheteur</strong> (demander un objet). Changez de rôle dans la barre du haut.
           </p>
         </div>
       }
@@ -235,8 +235,8 @@ export class FeatureDonHome implements OnInit {
   readonly enCours = signal(false);
 
   protected readonly estAdmin = this.session.estAdmin;
-  protected readonly espaceDonneur = computed(() => this.session.est('DONNEUR', 'ADMIN'));
-  protected readonly espaceBeneficiaire = computed(() => this.session.est('BENEFICIAIRE', 'ADMIN'));
+  protected readonly espaceDonneur = computed(() => this.session.est('UTILISATEUR', 'ADMIN'));
+  protected readonly espaceBeneficiaire = computed(() => this.session.est('ACHETEUR', 'ADMIN'));
   protected readonly horsRole = computed(
     () => !this.espaceDonneur() && !this.espaceBeneficiaire(),
   );
@@ -333,7 +333,7 @@ export class FeatureDonHome implements OnInit {
         next: (annonces) => {
           const moi = this.session.utilisateurId();
           const liste =
-            this.session.est('DONNEUR') && moi != null
+            this.session.est('UTILISATEUR') && moi != null
               ? annonces.filter((a) => a.donneurId === moi)
               : annonces;
           this.annonces.set(liste);

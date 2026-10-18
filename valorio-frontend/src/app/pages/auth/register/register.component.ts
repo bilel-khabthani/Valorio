@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, RegisterRequest, messageErreur } from '@valorio/shared';
+import { AuthService, Acteur, ACTEURS, LIBELLES_ACTEUR, RegisterRequest, messageErreur, routeAccueil } from '@valorio/shared';
 
 @Component({
   selector: 'app-register',
@@ -18,9 +18,13 @@ export class RegisterComponent {
   nom = '';
   prenom = '';
   email = '';
+  acteur: Acteur = 'UTILISATEUR';
   password = signal('');
   confirmPassword = signal('');
   termsAccepted = false;
+
+  readonly acteurs: readonly Acteur[] = ACTEURS.filter((a) => a !== 'ADMIN');
+  readonly libelleActeur = LIBELLES_ACTEUR;
 
   showPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -103,6 +107,7 @@ export class RegisterComponent {
       nom: this.nom.trim(),
       prenom: this.prenom.trim(),
       email: this.email.trim(),
+      acteur: this.acteur,
       password: this.password(),
       confirmPassword: this.confirmPassword(),
       termsAccepted: this.termsAccepted,
@@ -115,7 +120,7 @@ export class RegisterComponent {
           'Compte créé avec succès ! Un email de confirmation vous a été envoyé. Redirection en cours...'
         );
         setTimeout(() => {
-          this.router.navigate(['/reparation']);
+          this.router.navigateByUrl(routeAccueil(this.authService.acteur() ?? this.acteur));
         }, 1500);
       },
       error: (err) => {

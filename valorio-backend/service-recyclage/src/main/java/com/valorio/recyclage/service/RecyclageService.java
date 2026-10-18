@@ -8,6 +8,7 @@ import com.valorio.recyclage.domain.RegleRecyclabilite;
 import com.valorio.recyclage.domain.StatutCollecte;
 import com.valorio.recyclage.domain.TransitionInterditeException;
 import com.valorio.recyclage.domain.VerdictRecyclabilite;
+import com.valorio.recyclage.external.ObjetEvenementPort;
 import com.valorio.recyclage.external.ObjetPort;
 import com.valorio.recyclage.external.UtilisateurPort;
 import com.valorio.recyclage.external.model.ObjetRef;
@@ -28,13 +29,15 @@ public class RecyclageService {
     private final RecyclageRepository repository;
     private final ObjetPort objets;
     private final UtilisateurPort utilisateurs;
+    private final ObjetEvenementPort evenements;
     private final AuditLog audit;
 
     public RecyclageService(RecyclageRepository repository, ObjetPort objets, UtilisateurPort utilisateurs,
-                            AuditLog audit) {
+                            ObjetEvenementPort evenements, AuditLog audit) {
         this.repository = repository;
         this.objets = objets;
         this.utilisateurs = utilisateurs;
+        this.evenements = evenements;
         this.audit = audit;
     }
 
@@ -119,6 +122,8 @@ public class RecyclageService {
 
         long id = repository.creerCollecte(objetId, utilisateurId, centreId, datePrevue);
         repository.ajouterHistorique(id, StatutCollecte.DEMANDE, "Demande de collecte");
+        evenements.enregistrer(objetId, "RECYCLAGE", "Demande de collecte déposée (collecte " + id + ")",
+                utilisateurId, null);
         audit.enregistrer("COLLECTE_DEMANDEE", "demande_collecte", id, "objet=" + objetId);
         return chargerCollecte(id);
     }
@@ -137,6 +142,11 @@ public class RecyclageService {
         }
         repository.majStatutCollecte(collecteId, cible, datePrevue);
         repository.ajouterHistorique(collecteId, cible, commentaire);
+        if (cible == StatutCollecte.RECUE) {
+            evenements.enregistrer(collecte.objetId(), "RECYCLAGE",
+                    "Objet remis au centre de recyclage (collecte " + collecteId + ")",
+                    collecte.utilisateurId(), "RECYCLE");
+        }
         audit.enregistrer("COLLECTE_STATUT_MODIFIE", "demande_collecte", collecteId,
                 collecte.statut() + " -> " + cible);
         return chargerCollecte(collecteId);

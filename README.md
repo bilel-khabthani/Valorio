@@ -35,10 +35,15 @@ Identifiants par défaut : `postgres` / `root` (surchargables via variables d'en
 
 ### Comptes pré-configurés (Migration Flyway `auth.users`)
 
-| Rôle | Email | Mot de passe | Statut |
-| ---- | ----- | ------------ | ------ |
+| Acteur | Email | Mot de passe | Statut |
+| ------ | ----- | ------------ | ------ |
 | **Administrateur** | `admin@valorio.tn` | `Admin123456!` | Actif, vérifié |
-| **Utilisateur standard** | `amine.bensalah@example.com` | `User123456!` | Actif, vérifié |
+| **Utilisateur** | `amine.bensalah@example.com` | `User123456!` | Actif, vérifié |
+| **Réparateur** | `sara.trabelsi@example.com` | `User123456!` | Actif, vérifié |
+| **Organisme de recyclage** | `karim.gharbi@example.com` | `User123456!` | Actif, vérifié |
+| **Acheteur** | `nadia.mansouri@example.com` | `User123456!` | Actif, vérifié |
+
+> Après connexion, l'utilisateur est redirigé vers l'espace de son acteur (`/utilisateur`, `/reparateur`, `/acheteur`, `/organisme`, `/admin`) et la navigation n'affiche que les modules pertinents.
 
 ## 2. Backend (4 terminaux à laisser ouverts)
 

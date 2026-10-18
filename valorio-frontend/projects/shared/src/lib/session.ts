@@ -1,35 +1,29 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { CentreRecyclage, Reparateur, Utilisateur, labelReparateur, labelUtilisateur } from './models';
+import { ACTEURS, Acteur, LIBELLES_ACTEUR } from './auth-models';
 
 /**
- * Acteurs metier du CDC Valorio. Chaque session simule une connexion
- * (Module 1 - Authentification n'est pas encore implemente).
+ * Acteurs metier du CDC Valorio (5 acteurs) : Utilisateur, Réparateur,
+ * Acheteur, Organisme de recyclage, Administrateur. La session est alimentee
+ * par l'authentification reelle (AuthService).
  */
-export type RoleActeur =
-  | 'UTILISATEUR'
-  | 'REPARATEUR'
-  | 'DONNEUR'
-  | 'BENEFICIAIRE'
-  | 'ORGANISME'
-  | 'ADMIN';
+export type RoleActeur = Acteur;
 
-export const ROLES_ACTEUR: readonly RoleActeur[] = [
-  'UTILISATEUR',
-  'REPARATEUR',
-  'DONNEUR',
-  'BENEFICIAIRE',
-  'ORGANISME',
-  'ADMIN',
-];
+export const ROLES_ACTEUR: readonly RoleActeur[] = ACTEURS;
 
-export const LIBELLES_ROLE: Record<RoleActeur, string> = {
-  UTILISATEUR: 'Utilisateur',
-  REPARATEUR: 'Réparateur',
-  DONNEUR: 'Donneur',
-  BENEFICIAIRE: 'Bénéficiaire',
-  ORGANISME: 'Organisme de recyclage',
-  ADMIN: 'Administrateur',
+export const LIBELLES_ROLE: Record<RoleActeur, string> = LIBELLES_ACTEUR;
+
+/** Page d'accueil dediee a chaque acteur (routes des espaces). */
+export const ACCUEIL_PAR_ACTEUR: Record<Acteur, string> = {
+  UTILISATEUR: '/utilisateur',
+  REPARATEUR: '/reparateur',
+  ACHETEUR: '/acheteur',
+  ORGANISME: '/organisme',
+  ADMIN: '/admin',
 };
+
+export function routeAccueil(acteur: Acteur | null | undefined): string {
+  return ACCUEIL_PAR_ACTEUR[acteur ?? 'UTILISATEUR'] ?? '/utilisateur';
+}
 
 export interface IdentiteSession {
   role: RoleActeur;
@@ -39,36 +33,9 @@ export interface IdentiteSession {
   centreId?: number;
 }
 
-export const IDENTITE_ADMIN: IdentiteSession = { role: 'ADMIN', label: 'Administrateur' };
-
 const IDENTITE_DEFAUT: IdentiteSession = { role: 'UTILISATEUR', label: 'Utilisateur' };
 
 const STORAGE_KEY = 'valorio.session';
-
-export function identiteUtilisateur(utilisateur: Utilisateur, role: RoleActeur): IdentiteSession {
-  return {
-    role,
-    label: labelUtilisateur(utilisateur),
-    utilisateurId: utilisateur.id,
-  };
-}
-
-export function identiteReparateur(reparateur: Reparateur): IdentiteSession {
-  return {
-    role: 'REPARATEUR',
-    label: labelReparateur(reparateur),
-    utilisateurId: reparateur.utilisateurId ?? undefined,
-    reparateurId: reparateur.id,
-  };
-}
-
-export function identiteCentre(centre: CentreRecyclage): IdentiteSession {
-  return {
-    role: 'ORGANISME',
-    label: centre.nom,
-    centreId: centre.id,
-  };
-}
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
