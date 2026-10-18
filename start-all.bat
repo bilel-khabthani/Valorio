@@ -5,6 +5,7 @@ REM  7 microservices Spring Boot + moteur IA Python (ml-engine) + frontend
 REM  Pre-requis : PostgreSQL 16 ecoute sur le port 5432 (base "valorio")
 REM =========================================================================
 setlocal EnableDelayedExpansion
+set "NG_CLI_ANALYTICS=false"
 set "ROOT=%~dp0"
 
 REM --- Localisation de Maven (PATH d'abord, puis wrapper local) -----------
@@ -23,7 +24,7 @@ echo [1/10] Verification de PostgreSQL sur le port 5432...
 powershell -NoProfile -Command "if (Get-NetTCPConnection -LocalPort 5432 -State Listen -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }" >nul 2>nul
 if errorlevel 1 (
   echo   ERREUR : PostgreSQL n'ecoute pas sur 5432.
-  echo   Demarrez PostgreSQL (service postgresql-x64-*) puis relancez ce script.
+  echo   Demarrez le service PostgreSQL puis relancez ce script.
   pause
   exit /b 1
 )
@@ -58,6 +59,6 @@ start "valorio-frontend-4200" cmd /k "cd /d "%ROOT%valorio-frontend" && npm star
 
 echo.
 echo Demarrage lance. Attendez ~40s puis ouvrez http://localhost:4200
-echo Santes : http://localhost:808X/actuator/health  |  ML : http://localhost:8090/health
+echo Santes : http://localhost:808X/actuator/health  ^|  ML : http://localhost:8090/health
 echo Pour tout arreter : stop-all.bat
 pause
