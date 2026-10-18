@@ -48,6 +48,7 @@ export class App {
       modules.push({ path: '/recyclage', label: 'Recyclage' });
     }
     modules.push({ path: '/objets', label: 'Objets' });
+    modules.push({ path: '/recommandation', label: 'Recommandation' });
     if (autorise(['ACHETEUR'])) {
       modules.push({ path: '/marketplace', label: 'Marketplace' });
     }

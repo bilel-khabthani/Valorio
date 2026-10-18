@@ -68,6 +68,10 @@ export const routes: Routes = [
     loadChildren: () => import('@valorio/feature-marketplace').then((m) => m.routes),
   },
   {
+    path: 'recommandation',
+    loadChildren: () => import('@valorio/feature-recommandation').then((m) => m.routes),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./pages/auth/login/login.component').then((m) => m.LoginComponent),

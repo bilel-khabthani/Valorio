@@ -30,6 +30,12 @@
       "@valorio/api-marketplace": [
         "./projects/api-marketplace/src/public-api.ts"
       ],
+      "@valorio/api-recommandation": [
+        "./projects/api-recommandation/src/public-api.ts"
+      ],
+      "@valorio/feature-recommandation": [
+        "./projects/feature-recommandation/src/public-api.ts"
+      ],
       "@valorio/feature-reparation": [
         "./projects/feature-reparation/src/public-api.ts"
       ],
@@ -148,6 +154,18 @@
     },
     {
       "path": "./projects/feature-admin/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/api-recommandation/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-recommandation/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/feature-recommandation/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/feature-recommandation/tsconfig.spec.json"
     }
   ]
 }

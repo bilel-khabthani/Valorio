@@ -29,6 +29,12 @@
     "changeOrigin": true,
     "pathRewrite": { "^/mkt": "" }
   },
+  "/reco/api": {
+    "target": "http://localhost:8087",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/reco": "" }
+  },
   "/api/auth": {
     "target": "http://localhost:8084",
     "secure": false,

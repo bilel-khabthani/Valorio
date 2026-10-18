@@ -1,0 +1,121 @@
+id,titre,description,categorie,etat,prix
+1,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,EXCELLENT,39.85
+2,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,EXCELLENT,292.52
+3,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,BON,205.52
+4,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,HORS_SERVICE,6.67
+5,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,HORS_SERVICE,32.42
+6,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,ENDOMMAGE,83.82
+7,Scooter 50cc - demarreur HS,"Scooter urbain, demarreur bloque, carburateur propre.",Velo & mobilite,EXCELLENT,133.9
+8,Blouson cuir - manches fatiguées,"Blouson cuir, manches usees, doublure intacte.",Vetements,NEUF,48.71
+9,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,EXCELLENT,62.28
+10,Casserole inox - fond bombé,"Casserole inox, fond legerement bombe.",Cuisine,ENDOMMAGE,21.65
+11,Jean usé - genoux percés,"Jean denim, genoux percés, couture a refaire.",Vetements,EXCELLENT,50.24
+12,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,EXCELLENT,137.4
+13,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,ENDOMMAGE,67.17
+14,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,HORS_SERVICE,25.19
+15,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,HORS_SERVICE,22.79
+16,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,ENDOMMAGE,19.19
+17,Scooter 50cc - demarreur HS,"Scooter urbain, demarreur bloque, carburateur propre.",Velo & mobilite,EXCELLENT,195.47
+18,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,BON,49.89
+19,Casserole inox - fond bombé,"Casserole inox, fond legerement bombe.",Cuisine,ENDOMMAGE,22.68
+20,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,EXCELLENT,149.73
+21,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,ENDOMMAGE,21.13
+22,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,HORS_SERVICE,5.83
+23,Commode vintage,"Commode 3 tiroirs, vernis ecaille, bonne structure.",Meubles,BON,41.69
+24,Four à micro-ondes - plateau fende,"Micro-ondes 800W, plateau tournant fende.",Cuisine,NEUF,46.04
+25,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,BON,108.04
+26,Table en bois - pied desserre,"Table a manger en bois massif, un pied a desserrer.",Meubles,NEUF,74.53
+27,Four à micro-ondes - plateau fende,"Micro-ondes 800W, plateau tournant fende.",Cuisine,ENDOMMAGE,20.55
+28,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,ENDOMMAGE,94.75
+29,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,EXCELLENT,169.76
+30,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,BON,180.07
+31,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,EXCELLENT,41.14
+32,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,BON,167.86
+33,Commode vintage,"Commode 3 tiroirs, vernis ecaille, bonne structure.",Meubles,EXCELLENT,67.88
+34,Tablette tactile - ecran frole,"Tablette 10 pouces, ecran frole dans un coin.",Electronique,EXCELLENT,199.02
+35,Tablette tactile - ecran frole,"Tablette 10 pouces, ecran frole dans un coin.",Electronique,ENDOMMAGE,70.75
+36,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,BON,26.1
+37,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,NEUF,256.02
+38,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,BON,44.71
+39,Casque audio sans fil,"Casque bluetooth, mousse usee, son correct.",Electronique,BON,224.95
+40,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,EXCELLENT,49.32
+41,Casserole inox - fond bombé,"Casserole inox, fond legerement bombe.",Cuisine,NEUF,41.99
+42,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,EXCELLENT,222.02
+43,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,ENDOMMAGE,113.1
+44,Blouson cuir - manches fatiguées,"Blouson cuir, manches usees, doublure intacte.",Vetements,EXCELLENT,44.81
+45,Smartphone - batterie usee,"Telephone tactile, batterie gonflee, ecran intact.",Electronique,EXCELLENT,179.05
+46,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,ENDOMMAGE,75.33
+47,Blouson cuir - manches fatiguées,"Blouson cuir, manches usees, doublure intacte.",Vetements,EXCELLENT,56.5
+48,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,BON,170.88
+49,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,ENDOMMAGE,17.08
+50,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,ENDOMMAGE,14.69
+51,Bibliotheque en kit,"Etagere montee, deux plaques manquantes.",Meubles,HORS_SERVICE,8.65
+52,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,BON,24.31
+53,Bibliotheque en kit,"Etagere montee, deux plaques manquantes.",Meubles,ENDOMMAGE,15.22
+54,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,ENDOMMAGE,17.71
+55,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,EXCELLENT,165.03
+56,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,NEUF,296.98
+57,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,BON,31.47
+58,Blouson cuir - manches fatiguées,"Blouson cuir, manches usees, doublure intacte.",Vetements,EXCELLENT,52.45
+59,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,HORS_SERVICE,29.23
+60,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,ENDOMMAGE,16.93
+61,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,EXCELLENT,35.15
+62,Bibliotheque en kit,"Etagere montee, deux plaques manquantes.",Meubles,ENDOMMAGE,17.15
+63,Jean usé - genoux percés,"Jean denim, genoux percés, couture a refaire.",Vetements,ENDOMMAGE,20.29
+64,Commode vintage,"Commode 3 tiroirs, vernis ecaille, bonne structure.",Meubles,BON,34.47
+65,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,ENDOMMAGE,18.42
+66,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,HORS_SERVICE,7.84
+67,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,BON,181.48
+68,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,72.45
+69,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,BON,32.87
+70,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,64.36
+71,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,BON,38.63
+72,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,ENDOMMAGE,71.85
+73,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,ENDOMMAGE,74.07
+74,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,41.87
+75,Commode vintage,"Commode 3 tiroirs, vernis ecaille, bonne structure.",Meubles,ENDOMMAGE,26.39
+76,Jean usé - genoux percés,"Jean denim, genoux percés, couture a refaire.",Vetements,EXCELLENT,47.9
+77,Casserole inox - fond bombé,"Casserole inox, fond legerement bombe.",Cuisine,ENDOMMAGE,13.91
+78,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,ENDOMMAGE,55.65
+79,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,BON,123.14
+80,Table en bois - pied desserre,"Table a manger en bois massif, un pied a desserrer.",Meubles,BON,36.84
+81,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,BON,110.92
+82,Table en bois - pied desserre,"Table a manger en bois massif, un pied a desserrer.",Meubles,ENDOMMAGE,21.26
+83,Smartphone - batterie usee,"Telephone tactile, batterie gonflee, ecran intact.",Electronique,EXCELLENT,270.77
+84,Casque audio sans fil,"Casque bluetooth, mousse usee, son correct.",Electronique,BON,138.0
+85,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,BON,97.23
+86,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,ENDOMMAGE,51.55
+87,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,EXCELLENT,46.41
+88,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,BON,35.84
+89,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,NEUF,219.02
+90,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,EXCELLENT,145.83
+91,Velo de course - chaine tired,"Cadre alu, chaine tired, pneus a changer.",Velo & mobilite,NEUF,131.02
+92,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,BON,33.66
+93,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,63.63
+94,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,ENDOMMAGE,122.11
+95,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,EXCELLENT,276.37
+96,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,NEUF,282.11
+97,Table en bois - pied desserre,"Table a manger en bois massif, un pied a desserrer.",Meubles,ENDOMMAGE,17.21
+98,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,BON,32.36
+99,Robe de soirée - fermeture cassee,"Robe longue, fermeture eclair bloque.",Vetements,BON,39.75
+100,Jean usé - genoux percés,"Jean denim, genoux percés, couture a refaire.",Vetements,NEUF,54.17
+101,Smartphone - batterie usee,"Telephone tactile, batterie gonflee, ecran intact.",Electronique,BON,139.05
+102,Manteau d'hiver - hors d'usage,"Manteau laine, doublure dechiree, hors d'usage.",Vetements,BON,41.02
+103,Table en bois - pied desserre,"Table a manger en bois massif, un pied a desserrer.",Meubles,BON,32.82
+104,Smartphone - batterie usee,"Telephone tactile, batterie gonflee, ecran intact.",Electronique,ENDOMMAGE,113.18
+105,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,ENDOMMAGE,23.35
+106,Bibliotheque en kit,"Etagere montee, deux plaques manquantes.",Meubles,HORS_SERVICE,10.26
+107,Casque audio sans fil,"Casque bluetooth, mousse usee, son correct.",Electronique,BON,242.21
+108,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,56.25
+109,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,BON,45.55
+110,Robot pâtissier - moteur bruyant,"Robot pâtissier, moteur bruyant mais fonctionnel.",Cuisine,EXCELLENT,54.96
+111,Ordinateur portable - ecran casse,"Portable 15 pouces, ecran fende, fonctionne sous alimentation.",Electronique,EXCELLENT,250.32
+112,Trottinette electrique - crevaison,"Trottinette pliable, pneu arriere creve, moteur OK.",Velo & mobilite,NEUF,141.77
+113,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,BON,31.06
+114,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,ENDOMMAGE,24.61
+115,Tablette tactile - ecran frole,"Tablette 10 pouces, ecran frole dans un coin.",Electronique,ENDOMMAGE,90.58
+116,Chaise de bureau - roulettes cassees,"Chaise ergonomique, deux roulettes cassees.",Meubles,EXCELLENT,46.22
+117,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,NEUF,58.92
+118,Velo de ville - roue voilee,"Velo de ville, roue arriere voilee, freins a reajuster.",Velo & mobilite,BON,171.58
+119,Poêle anti-adhésive - revêtement usé,"Poêle 26 cm, revêtement use, corps sain.",Cuisine,EXCELLENT,32.99
+120,Appareil photo numerique,"Compact 20 Mpx, objectif raye, viseur OK.",Electronique,ENDOMMAGE,112.1

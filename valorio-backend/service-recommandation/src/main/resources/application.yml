@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: service-recommandation
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/valorio?currentSchema=recommandation}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:bilel}
+  flyway:
+    enabled: true
+    schemas: recommandation
+    default-schema: recommandation
+    create-schemas: true
+
+server:
+  port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+valorio:
+  ml:
+    base-url: ${VALORIO_ML_BASE_URL:http://localhost:8090}
+    timeout-ms: 3000
+  objets:
+    base-url: ${OBJETS_URL:http://localhost:8085}
+  auth:
+    base-url: ${AUTH_URL:http://localhost:8084}
+  marketplace:
+    base-url: ${VALORIO_MARKETPLACE_BASE_URL:http://localhost:8086}
+    timeout-ms: 2000
+    actif: true
+  ai:
+    provider: ${VALORIO_AI_PROVIDER:mock}
+    api-key: ${AI_API_KEY:}
+    base-url: ${AI_BASE_URL:https://api.openai.com/v1}

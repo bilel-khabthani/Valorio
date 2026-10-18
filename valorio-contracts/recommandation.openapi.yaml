@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: API Recommandation — Valorio
+  description: |
+    Module de recommandation intelligent de Valorio. Trois familles de modèles ML
+    (moteur Python `ml-engine`, port 8090) consommées par le microservice Java
+    `service-recommandation` (port 8086, schéma PostgreSQL `recommandation`) :
+
+    1. **Valorisation** — recommande la meilleure route de valorisation d'un objet
+       (Réparation, Don, Recyclage, Revente) avec score, explication des features
+       et alternatives classées.
+    2. **Acteurs** — classe les réparateurs / bénéficiaires / centres de recyclage
+       par probabilité d'acceptation, délai estimé et distance.
+    3. **Marché** — articles similaires (similarité contenu TF-IDF) et score
+       d'équité de prix (réutilise la formule de valorisation du module Marketplace).
+
+    Architecture : fallback déterministe `HeuristicRecoProvider` lorsque le
+    moteur ML est indisponible (jamais d'erreur 500 liée au moteur).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8086
+    description: service-recommandation (local)
+tags:
+  - name: valorisation
+    description: Recommandation de route de valorisation d'un objet
+  - name: acteurs
+    description: Classement intelligent d'acteurs (réparateur, bénéficiaire, centre)
+  - name: marche
+    description: Recommandations de marché (similarité, équité de prix)
+  - name: modele
+    description: Métadonnées, feedback et historique des modèles
+
+paths:
+  /api/recommandations/valorisation:
+    post:
+      tags: [valorisation]
+      summary: Recommander la meilleure route de valorisation d'un objet
+      operationId: recommanderValorisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValorisationRequest'
+      responses:
+        '200':
+          description: Recommandation générée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoValorisationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/recommandations/acteurs:
+    post:
+      tags: [acteurs]
+      summary: Classer les acteurs pertinents pour une demande
+      operationId: recommanderActeurs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActeursRequest'
+      responses:
+        '200':
+          description: Classement des acteurs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoActeursResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/recommandations/marche/similaires:
+    post:
+      tags: [marche]
+      summary: Trouver les articles de marché similaires
+      operationId: articlesSimilaires
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarcheRequest'
+      responses:
+        '200':
+          description: Articles similaires classés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoMarcheResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/recommandations/feedback:
+    post:
+      tags: [modele]
+      summary: Enregistrer le retour utilisateur sur une recommandation (donnée d'apprentissage)
+      operationId: enregistrerFeedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '201':
+          description: Feedback enregistré
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/recommandations/modele/metadata:
+    get:
+      tags: [modele]
+      summary: Métadonnées du modèle actif (version, métriques, top features)
+      operationId: metadataModele
+      responses:
+        '200':
+          description: Métadonnées du modèle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModeleMetadata'
+
+  /api/recommandations/historique:
+    get:
+      tags: [modele]
+      summary: Historique des recommandations émises (filtre par objet)
+      operationId: historiqueReco
+      parameters:
+        - name: objetId
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Historique des recommandations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoriqueReco'
+
+  /api/recommandations/{recommandationId}/explication:
+    post:
+      tags: [modele]
+      summary: Générer une narration en langage naturel d'une recommandation (LLM optionnel, repli structuré)
+      operationId: expliquerRecommandation
+      parameters:
+        - name: recommandationId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Explication en langage naturel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplicationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /actuator/health:
+    get:
+      summary: Santé du service
+      operationId: health
+      responses:
+        '200':
+          description: UP
+
+components:
+  responses:
+    BadRequest:
+      description: Requête invalide (RFC 7807)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+    NotFound:
+      description: Ressource introuvable (RFC 7807)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetail' }
+
+  schemas:
+    RouteValorisation:
+      type: string
+      enum: [REPARATION, DON, RECYCLAGE, REVENTE]
+
+    TypeActeur:
+      type: string
+      enum: [REPARATEUR, BENEFICIAIRE, CENTRE_RECYCLAGE]
+
+    SourcePrediction:
+      type: string
+      enum: [ML, HEURISTIQUE]
+      description: ML = moteur Python joignable ; HEURISTIQUE = repli déterministe local
+
+    ObjetAnalyseInput:
+      type: object
+      description: Description de l'objet à analyser (inline ou résolue depuis les fixtures via objetId)
+      properties:
+        categorieId: { type: integer, format: int64 }
+        categorie: { type: string, example: Electronique }
+        intitule: { type: string, example: Ordinateur portable - écran cassé }
+        etat:
+          type: string
+          enum: [NEUF, EXCELLENT, BON, ENDOMMAGE, HORS_SERVICE]
+        ageAnnees: { type: number, format: float, minimum: 0 }
+        valeurEstimee: { type: number, format: double, minimum: 0, description: Valeur estimée en EUR }
+        coutReparationEstime: { type: number, format: double, minimum: 0, description: Coût de réparation estimé en EUR (0 si inconnu) }
+        ville: { type: string, example: Tunis }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        materiaux:
+          type: array
+          items: { type: string }
+          example: [plastique, aluminium, verre]
+        tauxRecyclabilite:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Part des matériaux valorisables (règle métier recyclage), 0-1
+
+    ValorisationRequest:
+      type: object
+      properties:
+        objetId:
+          type: integer
+          format: int64
+          description: Si fourni (et aucune description inline), l'objet est résolu depuis le référentiel objet
+        objet:
+          $ref: '#/components/schemas/ObjetAnalyseInput'
+      description: Au moins objetId ou objet inline est exigé.
+
+    RaisonReco:
+      type: object
+      properties:
+        feature: { type: string, example: coutReparationEstime }
+        valeur: { type: string, example: '420' }
+        contribution: { type: number, format: double, description: Poids de la feature dans la décision (signé, normalisé 0-1) }
+        libelle: { type: string, example: 'Coût de réparation élevé (420 €) face à une valeur de 650 €' }
+
+    AlternativeReco:
+      type: object
+      properties:
+        route: { $ref: '#/components/schemas/RouteValorisation' }
+        probabilite: { type: number, format: double, minimum: 0, maximum: 1 }
+
+    RecoValorisationResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64, description: Identifiant persisté (historique) }
+        routeRecommandee: { $ref: '#/components/schemas/RouteValorisation' }
+        probabilite: { type: number, format: double, minimum: 0, maximum: 1 }
+        alternatives:
+          type: array
+          items: { $ref: '#/components/schemas/AlternativeReco' }
+          description: Autres routes classées par probabilité décroissante (hors route recommandée)
+        raisons:
+          type: array
+          items: { $ref: '#/components/schemas/RaisonReco' }
+        confidenceScore: { type: number, format: double, minimum: 0, maximum: 1 }
+        source: { $ref: '#/components/schemas/SourcePrediction' }
+        modeleVersion: { type: string, example: valorisation-gbm-1.0.0 }
+
+    CandidatActeur:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        ville: { type: string }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        noteMoyenne: { type: number, format: double, description: Note /0 — 0 si inconnue }
+        nbAvis: { type: integer }
+        disponible: { type: boolean }
+        competences: { type: string, description: Liste de mots-clés séparés par des virgules }
+        categories: { type: string, description: Ids de catégories séparés par des virgules }
+
+    ActeursRequest:
+      type: object
+      required: [typeActeur]
+      properties:
+        typeActeur: { $ref: '#/components/schemas/TypeActeur' }
+        objet:
+          $ref: '#/components/schemas/ObjetAnalyseInput'
+        latitude: { type: number, format: double, description: Position de recherche (défaut : celle de l'objet) }
+        longitude: { type: number, format: double }
+        rayonKm: { type: number, format: double, default: 100 }
+        candidats:
+          type: array
+          description: Optionnel — candidats fournis par le client ; sinon le service charge son référentiel local
+          items: { $ref: '#/components/schemas/CandidatActeur' }
+
+    ActeurClasse:
+      type: object
+      properties:
+        candidatId: { type: integer, format: int64 }
+        score: { type: number, format: double, minimum: 0, maximum: 1 }
+        probabiliteAcceptation: { type: number, format: double, minimum: 0, maximum: 1 }
+        delaiJoursEstime: { type: number, format: double, minimum: 0 }
+        distanceKm: { type: number, format: double, minimum: 0 }
+        raisons:
+          type: array
+          items: { type: string }
+
+    RecoActeursResponse:
+      type: object
+      properties:
+        typeActeur: { $ref: '#/components/schemas/TypeActeur' }
+        classement:
+          type: array
+          items: { $ref: '#/components/schemas/ActeurClasse' }
+        source: { $ref: '#/components/schemas/SourcePrediction' }
+        modeleVersion: { type: string }
+
+    ArticleMarche:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        titre: { type: string }
+        categorie: { type: string }
+        etat: { type: string }
+        prix: { type: number, format: double }
+        description: { type: string }
+
+    MarcheRequest:
+      type: object
+      required: [requete]
+      properties:
+        requete:
+          $ref: '#/components/schemas/ArticleMarche'
+        candidats:
+          type: array
+          description: Optionnel — sinon le service charge son référentiel local de listings
+          items: { $ref: '#/components/schemas/ArticleMarche' }
+        topK: { type: integer, default: 5, minimum: 1, maximum: 20 }
+
+    ArticleClasse:
+      type: object
+      properties:
+        articleId: { type: integer, format: int64 }
+        titre: { type: string }
+        similarite: { type: number, format: double, minimum: 0, maximum: 1 }
+        scoreDeal: { type: number, format: double, minimum: 0, maximum: 1 }
+        prix: { type: number, format: double }
+        prixRecommande: { type: number, format: double }
+        equitePrix: { type: string, enum: [EXCELLENT_DEAL, FAIR_MARKET, OVERPRICED, UNDERPRICED] }
+        raisons:
+          type: array
+          items: { type: string }
+
+    RecoMarcheResponse:
+      type: object
+      properties:
+        articles:
+          type: array
+          items: { $ref: '#/components/schemas/ArticleClasse' }
+        source: { $ref: '#/components/schemas/SourcePrediction' }
+        modeleVersion: { type: string }
+
+    FeedbackRequest:
+      type: object
+      required: [recommandationId, utile]
+      properties:
+        recommandationId: { type: integer, format: int64 }
+        utile: { type: boolean, description: true si l'utilisateur a appliqué/accepté la recommandation }
+        commentaire: { type: string, maxLength: 500 }
+
+    FeedbackResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        recommandationId: { type: integer, format: int64 }
+        utile: { type: boolean }
+        enregistreLe: { type: string, format: date-time }
+
+    ModeleMetadata:
+      type: object
+      properties:
+        actif: { type: boolean, description: false si le moteur ML est injoignable (mode heuristique) }
+        source: { $ref: '#/components/schemas/SourcePrediction' }
+        versionValorisation: { type: string, example: valorisation-gbm-1.0.0 }
+        versionActeurs: { type: string, example: acteurs-gbr-1.0.0 }
+        versionMarche: { type: string, example: marche-tfidf-1.0.0 }
+        metriques:
+          type: object
+          additionalProperties: { type: number }
+          example: { accuracy: 0.94, f1_macro: 0.92, ndcg_at_5: 0.87 }
+        topFeatures:
+          type: array
+          items: { type: string, example: coutRatio }
+
+    HistoriqueReco:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        objetId: { type: integer, format: int64 }
+        typeReco: { type: string, enum: [VALORISATION, ACTEURS, MARCHE] }
+        chargeUtile: { type: string, description: Résumé JSON de la requête }
+        resultat: { type: string, description: Résumé JSON du résultat }
+        source: { $ref: '#/components/schemas/SourcePrediction' }
+        creeLe: { type: string, format: date-time }
+
+    ExplicationResponse:
+      type: object
+      properties:
+        recommandationId: { type: integer, format: int64 }
+        explication: { type: string, description: Narration en français }
+        source: { $ref: '#/components/schemas/SourcePrediction', description: ML = LLM appelé ; HEURISTIQUE = narration structurée locale }
+
+    ProblemDetail:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

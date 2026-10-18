@@ -11,3 +11,13 @@ dist/
 **/.angular/
 .DS_Store
 Thumbs.db
+
+# Python (ml-engine)
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+.venv/
+**/.venv/

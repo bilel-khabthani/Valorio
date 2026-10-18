@@ -1,0 +1,16 @@
+{
+  "name": "@valorio/feature-recommandation",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "@valorio/api-recommandation": "0.0.1",
+    "@valorio/shared": "0.0.1",
+    "@valorio/api-reparation": "0.0.1"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}
