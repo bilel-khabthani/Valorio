@@ -3,6 +3,7 @@ export interface ValorioApiConfig {
   readonly don: string;
   readonly recyclage: string;
   readonly objets: string;
+  readonly marketplace: string;
   readonly users: string;
 }
 
@@ -18,6 +19,7 @@ export const VALORIO_ENV: ValorioEnvironment = {
     don: '/don',
     recyclage: '/rec',
     objets: '/objets',
+    marketplace: '/mkt',
     users: '/api/users',
   },
 };

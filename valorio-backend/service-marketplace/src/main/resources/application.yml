@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: service-marketplace
+  datasource:
+    url: jdbc:postgresql://localhost:5432/valorio?currentSchema=marketplace
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:bilel}
+  flyway:
+    enabled: true
+    schemas: marketplace
+    default-schema: marketplace
+    create-schemas: true
+
+server:
+  port: 8086
+
+valorio:
+  auth:
+    base-url: ${AUTH_URL:http://localhost:8084}
+  objets:
+    base-url: ${OBJETS_URL:http://localhost:8085}
+
+marketplace:
+  ai:
+    provider: ${AI_PROVIDER:hybrid}
+    api-key: ${AI_API_KEY:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

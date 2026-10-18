@@ -6,6 +6,7 @@ describe('VALORIO_ENV', () => {
     expect(VALORIO_ENV.api.don).toBe('/don');
     expect(VALORIO_ENV.api.recyclage).toBe('/rec');
     expect(VALORIO_ENV.api.objets).toBe('/objets');
+    expect(VALORIO_ENV.api.marketplace).toBe('/mkt');
     expect(VALORIO_ENV.api.users).toBe('/api/users');
   });
 });

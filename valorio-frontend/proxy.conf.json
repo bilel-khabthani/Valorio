@@ -23,6 +23,12 @@
     "changeOrigin": true,
     "pathRewrite": { "^/objets": "" }
   },
+  "/mkt/api": {
+    "target": "http://localhost:8086",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/mkt": "" }
+  },
   "/api/auth": {
     "target": "http://localhost:8084",
     "secure": false,

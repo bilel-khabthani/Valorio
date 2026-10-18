@@ -1,6 +1,6 @@
-# Valorio — Modules Réparation, Don, Recyclage, Authentification & IA
+# Valorio — Modules Réparation, Don, Recyclage, Objets, Marketplace & Authentification/IA
 
-Quatre microservices Spring Boot (modules **4**, **6**, **7** du cahier des charges + module **Authentification & IA**) et un
+Six microservices Spring Boot (modules **2**, **4**, **5**, **6**, **7** du cahier des charges + module **Authentification & IA**) et un
 frontend Angular 20 formant un tableau de bord unique.
 
 | Élément | Techno | Port |
@@ -9,10 +9,12 @@ frontend Angular 20 formant un tableau de bord unique.
 | `valorio-backend/service-don` | Spring Boot 3.3 / Java 17, JDBC + Flyway | 8082 |
 | `valorio-backend/service-recyclage` | Spring Boot 3.3 / Java 17, JDBC + Flyway | 8083 |
 | `valorio-backend/service-auth` | Spring Boot 3.3 / Java 17, Security, JDBC, Flyway, HMAC-SHA256 | 8084 |
-| `valorio-frontend` | Angular 20 (workspace modulaire, 7 libs + pages standalone) | 4200 |
+| `valorio-backend/service-objets` | Spring Boot 3.3 / Java 17, JDBC + Flyway, diagnostic & recommandation | 8085 |
+| `valorio-backend/service-marketplace` | Spring Boot 3.3 / Java 17, JDBC + Flyway, moteur IA heuristique | 8086 |
+| `valorio-frontend` | Angular 20 (workspace modulaire, 9 libs + pages standalone) | 4200 |
 
 Chaque service utilise la même base de données PostgreSQL `valorio`, avec un schéma SQL dédié
-(`reparation`, `don`, `recyclage`, `auth`).
+(`reparation`, `don`, `recyclage`, `objets`, `marketplace`, `auth`).
 
 ## Prérequis
 
@@ -45,13 +47,17 @@ Identifiants par défaut : `postgres` / `root` (surchargables via variables d'en
 
 > Après connexion, l'utilisateur est redirigé vers l'espace de son acteur (`/utilisateur`, `/reparateur`, `/acheteur`, `/organisme`, `/admin`) et la navigation n'affiche que les modules pertinents.
 
-## 2. Backend (4 terminaux à laisser ouverts)
+## 2. Backend (6 terminaux à laisser ouverts)
+
+Démarrage conseillé : `service-auth` et `service-objets` d'abord (les services métier les appellent en HTTP).
 
 ```powershell
+mvn -f valorio-backend/service-auth spring-boot:run         # http://localhost:8084
+mvn -f valorio-backend/service-objets spring-boot:run       # http://localhost:8085
 mvn -f valorio-backend/service-reparation spring-boot:run   # http://localhost:8081
 mvn -f valorio-backend/service-don spring-boot:run          # http://localhost:8082
 mvn -f valorio-backend/service-recyclage spring-boot:run    # http://localhost:8083
-mvn -f valorio-backend/service-auth spring-boot:run         # http://localhost:8084
+mvn -f valorio-backend/service-marketplace spring-boot:run   # http://localhost:8086
 ```
 
 Vérifications rapides :
@@ -59,6 +65,7 @@ Vérifications rapides :
 ```powershell
 Invoke-RestMethod http://localhost:8081/actuator/health
 Invoke-RestMethod http://localhost:8084/actuator/health
+Invoke-RestMethod http://localhost:8086/actuator/health
 ```
 
 Documentation interactive (Swagger UI OpenAPI) :
@@ -67,6 +74,8 @@ Documentation interactive (Swagger UI OpenAPI) :
 - Don : http://localhost:8082/swagger-ui.html
 - Recyclage : http://localhost:8083/swagger-ui.html
 - Authentification : http://localhost:8084/swagger-ui.html
+- Objets : http://localhost:8085/swagger-ui.html
+- Marketplace : http://localhost:8086/swagger-ui.html
 
 ## 3. Frontend
 
@@ -79,7 +88,9 @@ Le dev-server redirige (`proxy.conf.json`) :
 - `/rep/api` → 8081
 - `/don/api` → 8082
 - `/rec/api` → 8083
-- `/api/auth` → 8084
+- `/objets/api` → 8085
+- `/mkt/api` → 8086
+- `/api/auth` et `/api/users` → 8084
 
 ## Parcours fonctionnels
 
@@ -91,6 +102,8 @@ Le dev-server redirige (`proxy.conf.json`) :
 - **Réparation** (`/reparation`) : créer une demande, rechercher un réparateur, proposer/accepter un devis, planifier une date d'intervention, suivre le workflow `DEMANDE → ACCEPTEE → DIAGNOSTIC → EN_REPARATION → TERMINEE → LIVREE`.
 - **Don** (`/don`) : publier un objet (description, conditions, coordonnées), matching des bénéficiaires par distance, workflow de demande `DEMANDE → ACCEPTEE → REMISE_ORGANISEE → CONFIRMEE` (ou `REFUSEE`), annulation logique d'annonce.
 - **Recyclage** (`/recyclage`) : analyser la recyclabilité d'un objet, rechercher un centre par matériau/distance, demander une collecte et suivre `DEMANDE → PLANIFIEE → EN_COURS → RECUE` (ou `ANNULEE`).
+- **Objets** (`/objets`) : registre filtrable des objets trouvés, déclaration, page détail avec diagnostic, recommandation (`REPARER`/`REVENDRE`/`DONNER`/`RECYCLER`), cycle de vie et historique.
+- **Marketplace** (`/marketplace`, réservé à l'acteur Acheteur) : catalogue des objets non réclamés revalorisés avec **estimation de prix par IA**, **modération automatique** et **détection d'anomalies** ; dépôt d'annonce assisté par IA, offres d'achat / demandes d'attribution solidaire et tableau de négociations (**Laboratoire IA** : `/marketplace/ai-lab`).
 
 ## Rôles & session
 
@@ -108,7 +121,9 @@ Backend :
 mvn -f valorio-backend/service-reparation test    # 9 tests
 mvn -f valorio-backend/service-don test           # 13 tests
 mvn -f valorio-backend/service-recyclage test     # 11 tests
-mvn -f valorio-backend/service-auth test          # 20+ tests auth & security
+mvn -f valorio-backend/service-auth test          # 35 tests auth & security
+mvn -f valorio-backend/service-objets test        # 22 tests
+mvn -f valorio-backend/service-marketplace test   # 19 tests (contrôleurs + moteur IA)
 ```
 
 Frontend :

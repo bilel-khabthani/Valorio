@@ -27,6 +27,9 @@
       "@valorio/api-objets": [
         "./projects/api-objets/src/public-api.ts"
       ],
+      "@valorio/api-marketplace": [
+        "./projects/api-marketplace/src/public-api.ts"
+      ],
       "@valorio/feature-reparation": [
         "./projects/feature-reparation/src/public-api.ts"
       ],
@@ -38,6 +41,9 @@
       ],
       "@valorio/feature-objets": [
         "./projects/feature-objets/src/public-api.ts"
+      ],
+      "@valorio/feature-marketplace": [
+        "./projects/feature-marketplace/src/public-api.ts"
       ]
     },
     "importHelpers": true,
@@ -112,6 +118,18 @@
     },
     {
       "path": "./projects/feature-objets/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/api-marketplace/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-marketplace/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/feature-marketplace/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/feature-marketplace/tsconfig.spec.json"
     }
   ]
 }

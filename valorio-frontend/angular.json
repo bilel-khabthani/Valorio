@@ -360,6 +360,66 @@
           }
         }
       }
+    },
+    "api-marketplace": {
+      "projectType": "library",
+      "root": "projects/api-marketplace",
+      "sourceRoot": "projects/api-marketplace/src",
+      "prefix": "valorio",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/api-marketplace/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/api-marketplace/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/api-marketplace/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
+    },
+    "feature-marketplace": {
+      "projectType": "library",
+      "root": "projects/feature-marketplace",
+      "sourceRoot": "projects/feature-marketplace/src",
+      "prefix": "valorio",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/feature-marketplace/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/feature-marketplace/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/feature-marketplace/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
     }
   }
 }

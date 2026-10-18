@@ -64,6 +64,11 @@ export const routes: Routes = [
     loadChildren: () => import('@valorio/feature-objets').then((m) => m.routes),
   },
   {
+    path: 'marketplace',
+    canActivate: [acteurGuard(['ACHETEUR'])],
+    loadChildren: () => import('@valorio/feature-marketplace').then((m) => m.routes),
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./pages/auth/login/login.component').then((m) => m.LoginComponent),

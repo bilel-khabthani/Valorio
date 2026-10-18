@@ -40,6 +40,9 @@ export class App {
       modules.push({ path: '/recyclage', label: 'Recyclage' });
     }
     modules.push({ path: '/objets', label: 'Objets' });
+    if (autorise(['ACHETEUR'])) {
+      modules.push({ path: '/marketplace', label: 'Marketplace' });
+    }
     return modules;
   });
 
