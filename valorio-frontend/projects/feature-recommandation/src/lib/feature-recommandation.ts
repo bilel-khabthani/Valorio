@@ -141,7 +141,7 @@ import { HttpClient } from '@angular/common/http';
                 @for (c of ra.classement; track c.candidatId; let i = $index) {
                   <tr>
                     <td>{{ i+1 }}</td>
-                    <td>{{ c.candidatId }} @if (c.distanceKm != null) { — {{ c.distanceKm?.toFixed(1) ?? '—' }} }</td>
+                    <td>{{ c.candidatId }} @if (c.distanceKm != null) { — {{ c.distanceKm.toFixed(1) }} }</td>
                     <td><div class="progress"><div class="progress-bar" [style.width.%]="c.score * 100"></div></div>{{ (c.score*100).toFixed(0) }}%</td>
                     <td>{{ (c.probabiliteAcceptation*100).toFixed(1) }}%</td>
                     <td>{{ c.delaiJoursEstime ?? '—' }}</td>
