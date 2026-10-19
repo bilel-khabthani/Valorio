@@ -283,7 +283,7 @@ export class FeatureRecommandationComponent implements OnInit {
     this.chargement.set(true);
     const o = this.objetSelectionne();
     this.api.recommanderValorisation({
-      objetId: this.objetId() || undefined,
+      objetId: o ? undefined : this.objetId() || undefined,
       objet: o ? {
         categorieId: o.categorieId,
         intitule: o.intitule,
