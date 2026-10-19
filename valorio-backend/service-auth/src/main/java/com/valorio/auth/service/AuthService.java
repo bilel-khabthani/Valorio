@@ -35,6 +35,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     public static final String REFRESH_COOKIE_NAME = "refreshToken";
+    /**
+     * Marqueur lisible par le JavaScript (non HttpOnly) posé en même temps que le
+     * cookie de refresh. Il permet au front de savoir, au démarrage de l'application,
+     * si une session est susceptible d'exister avant d'appeler POST /api/auth/refresh
+     * : sans session, la requête est simplement omise (pas de 401 inutile en console).
+     */
+    public static final String SESSION_MARKER_COOKIE_NAME = "valorio_session";
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -286,6 +293,24 @@ public class AuthService {
             cookieHeader.append(" Secure;");
         }
         response.addHeader("Set-Cookie", cookieHeader.toString());
+        response.addHeader("Set-Cookie", sessionMarkerCookie(maxAgeSeconds));
+    }
+
+    /**
+     * Marqueur de session lisible côté client (mêmes attributs que le cookie de
+     * refresh, mais sans HttpOnly) utilisé pour éviter un refresh au démarrage
+     * alors qu'aucune session n'existe.
+     */
+    private String sessionMarkerCookie(int maxAgeSeconds) {
+        StringBuilder marker = new StringBuilder();
+        marker.append(SESSION_MARKER_COOKIE_NAME).append("=1;");
+        marker.append(" Path=/;");
+        marker.append(" Max-Age=").append(maxAgeSeconds).append(";");
+        marker.append(" SameSite=").append(cookieSameSite).append(";");
+        if (cookieSecure) {
+            marker.append(" Secure;");
+        }
+        return marker.toString();
     }
 
     private void clearRefreshCookie(HttpServletResponse response) {
@@ -302,6 +327,7 @@ public class AuthService {
             cookieHeader.append(" Secure;");
         }
         response.addHeader("Set-Cookie", cookieHeader.toString());
+        response.addHeader("Set-Cookie", sessionMarkerCookie(0));
     }
 
     public static String hashToken(String rawToken) {

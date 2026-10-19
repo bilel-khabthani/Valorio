@@ -58,6 +58,16 @@ export class SessionService {
     this.sauvegarder();
   }
 
+  /** Oublie l'identité persistée : utilisée à la déconnexion et au rafraîchissement échoué. */
+  deconnexion(): void {
+    this._identite.set(IDENTITE_DEFAUT);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* stockage indisponible : rien à effacer */
+    }
+  }
+
   est(...roles: RoleActeur[]): boolean {
     return roles.includes(this._identite().role);
   }

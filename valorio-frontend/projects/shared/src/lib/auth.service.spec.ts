@@ -27,6 +27,9 @@ describe('AuthService', () => {
     user: mockUser,
   };
 
+  /** Marqueur de session non HttpOnly posé par le back au login. */
+  const MARQUEUR_SESSION = 'valorio_session';
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -39,16 +42,11 @@ describe('AuthService', () => {
 
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
-
-    // Répond à la tentative de restauration initiale automatique
-    const initReq = httpMock.match('/api/auth/refresh');
-    if (initReq.length > 0) {
-      initReq[0].flush('Non connecté', { status: 401, statusText: 'Unauthorized' });
-    }
   });
 
   afterEach(() => {
     httpMock.verify();
+    document.cookie = `${MARQUEUR_SESSION}=; path=/; max-age=0`;
   });
 
   it('démarre non authentifié par défaut', () => {
@@ -93,6 +91,7 @@ describe('AuthService', () => {
   });
 
   it('restaure la session au démarrage via initialiserSession (refresh réussi)', async () => {
+    document.cookie = `${MARQUEUR_SESSION}=1; path=/`;
     const promesse = service.initialiserSession();
 
     const req = httpMock.expectOne('/api/auth/refresh');
@@ -106,6 +105,7 @@ describe('AuthService', () => {
   });
 
   it('résout sans session si le refresh initial échoue (401)', async () => {
+    document.cookie = `${MARQUEUR_SESSION}=1; path=/`;
     const promesse = service.initialiserSession();
 
     const req = httpMock.expectOne('/api/auth/refresh');
@@ -113,6 +113,14 @@ describe('AuthService', () => {
 
     await promesse;
 
+    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.currentUser()).toBeNull();
+  });
+
+  it('n émet aucune requête de refresh quand aucune session n est candidate', async () => {
+    await service.initialiserSession();
+
+    httpMock.expectNone('/api/auth/refresh');
     expect(service.isAuthenticated()).toBeFalse();
     expect(service.currentUser()).toBeNull();
   });

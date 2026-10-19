@@ -22,13 +22,13 @@ import {
     <section class="page">
       <header class="page-header">
         <div class="flex-row">
-          <a class="btn small secondary" routerLink="/reparation">â† Retour</a>
+          <a class="btn small secondary" routerLink="/reparation">← Retour</a>
           <h1>Demande #{{ id }}</h1>
           @if (demande(); as d) {
             <span [class]="'badge ' + d.statut.toLowerCase()">{{ libelle(d.statut) }}</span>
           }
         </div>
-        <span class="muted">ConnectÃ© : {{ session.label() }}</span>
+        <span class="muted">Connecté : {{ session.label() }}</span>
       </header>
 
       @if (erreur()) {
@@ -47,17 +47,17 @@ import {
             <div class="tile">
               <h3>Objet #{{ d.objetId }}</h3>
               <span class="muted">{{ objet()?.intitule || 'Chargement...' }}</span>
-              <span class="muted">Ã‰tat : {{ objet()?.etat || 'â€”' }}</span>
+              <span class="muted">État : {{ objet()?.etat || '—' }}</span>
             </div>
             <div class="tile">
               <h3>Demandeur</h3>
               <span class="muted">{{ utilisateur()?.nom || 'Chargement...' }}</span>
-              <span class="muted">Ville : {{ utilisateur()?.ville || 'â€”' }}</span>
+              <span class="muted">Ville : {{ utilisateur()?.ville || '—' }}</span>
             </div>
             <div class="tile">
-              <h3>RÃ©parateur</h3>
+              <h3>Réparateur</h3>
               <span class="muted">{{ nomReparateur(d.reparateurId) }}</span>
-              <span class="muted">CrÃ©Ã©e le {{ date(d.dateCreation) }}</span>
+              <span class="muted">Créée le {{ date(d.dateCreation) }}</span>
               @if (d.dateIntervention) {
                 <span class="muted">Intervention : {{ date(d.dateIntervention) }}</span>
               }
@@ -82,7 +82,7 @@ import {
             @if (diagnostic(); as ia) {
               <div class="flex-row">
                 <span [class]="'badge ' + ia.gravite.toLowerCase()">{{ libelleGravite(ia.gravite) }}</span>
-                <span class="muted">{{ ia.categoriePanne }} Â· {{ ia.source }} Â· {{ pourcentage(ia.confiance) }}</span>
+                <span class="muted">{{ ia.categoriePanne }} · {{ ia.source }} · {{ pourcentage(ia.confiance) }}</span>
               </div>
               <p style="margin-top:0.7rem">{{ ia.diagnostic }}</p>
               <ul class="timeline">
@@ -93,26 +93,26 @@ import {
                   </li>
                 }
                 <li>
-                  <span class="when">Devis estimÃ©</span>
+                  <span class="when">Devis estimé</span>
                   <span>
-                    {{ ia.devisEstime.montantMin }}â€“{{ ia.devisEstime.montantMax }}
-                    {{ ia.devisEstime.devise }} Â· ~{{ ia.devisEstime.delaiJours }} jour(s)
+                    {{ ia.devisEstime.montantMin }}–{{ ia.devisEstime.montantMax }}
+                    {{ ia.devisEstime.devise }} · ~{{ ia.devisEstime.delaiJours }} jour(s)
                   </span>
                 </li>
               </ul>
               @if (ia.reparateursRecommandes.length) {
-                <h3 style="margin-top:1rem">RÃ©parateurs recommandÃ©s par l'IA</h3>
+                <h3 style="margin-top:1rem">Réparateurs recommandés par l'IA</h3>
                 <ul class="timeline">
                   @for (r of ia.reparateursRecommandes; track r.reparateurId) {
                     <li>
                       <span class="when">{{ nomReparateur(r.reparateurId) }}</span>
-                      <span class="muted">Score {{ r.score }}{{ r.ville ? ' Â· ' + r.ville : '' }}</span>
+                      <span class="muted">Score {{ r.score }}{{ r.ville ? ' · ' + r.ville : '' }}</span>
                     </li>
                   }
                 </ul>
               }
               <div class="actions" style="margin-top:0.9rem">
-                <button class="btn secondary" (click)="utiliserDevisIa()">PrÃ©-remplir le devis</button>
+                <button class="btn secondary" (click)="utiliserDevisIa()">Pré-remplir le devis</button>
               </div>
               @for (a of ia.avertissements; track a) {
                 <p class="muted">{{ a }}</p>
@@ -138,12 +138,12 @@ import {
                 <span>{{ dev.montant }} DT</span>
               </li>
               <li>
-                <span class="when">DÃ©lai</span>
-                <span>{{ dev.delaiJours ?? 'â€”' }} jour(s)</span>
+                <span class="when">Délai</span>
+                <span>{{ dev.delaiJours ?? '—' }} jour(s)</span>
               </li>
               <li>
                 <span class="when">Commentaire</span>
-                <span>{{ dev.commentaire || 'â€”' }}</span>
+                <span>{{ dev.commentaire || '—' }}</span>
               </li>
             </div>
             @if (dev.statut === 'EN_ATTENTE' && peutRepondreDevis()) {
@@ -163,14 +163,14 @@ import {
                 <input type="number" name="montant" [(ngModel)]="devisForm.montant" min="0" step="0.5" required />
               </label>
               <label class="field">
-                <span>DÃ©lai (jours)</span>
+                <span>Délai (jours)</span>
                 <input type="number" name="delaiJours" [(ngModel)]="devisForm.delaiJours" />
               </label>
               @if (estAdmin()) {
                 <label class="field">
-                  <span>RÃ©parateur</span>
+                  <span>Réparateur</span>
                   <select name="reparateurId" [(ngModel)]="devisForm.reparateurId">
-                    <option [ngValue]="undefined">Non assignÃ©</option>
+                    <option [ngValue]="undefined">Non assigné</option>
                     @for (r of reparateurs(); track r.id) {
                       <option [ngValue]="r.id">{{ optionReparateur(r) }}</option>
                     }
@@ -184,7 +184,7 @@ import {
               <button class="btn" type="submit" [disabled]="enCours()">Proposer le devis</button>
             </form>
           } @else if (d.statut === 'DEMANDE') {
-            <p class="empty">En attente d'un devis de la part d'un rÃ©parateur.</p>
+            <p class="empty">En attente d'un devis de la part d'un réparateur.</p>
           } @else {
             <p class="empty">Aucun devis pour cette demande.</p>
           }
@@ -195,7 +195,7 @@ import {
             <h2>Date d'intervention</h2>
             <p class="muted">
               @if (d.dateIntervention) {
-                Intervention planifiÃ©e le {{ date(d.dateIntervention) }}.
+                Intervention planifiée le {{ date(d.dateIntervention) }}.
               } @else {
                 Aucune date d'intervention choisie.
               }
@@ -215,15 +215,15 @@ import {
             <h2>Workflow</h2>
             @if (peutAvancer() && prochain()) {
               <button class="btn" (click)="avancerStatut()" [disabled]="enCours()">
-                Passer Ã  {{ libelle(prochain()!) }}
+                Passer à {{ libelle(prochain()!) }}
               </button>
             }
           </div>
           @if (!prochain()) {
-            <p class="empty">Demande terminÃ©e ({{ libelle(d.statut) }}).</p>
+            <p class="empty">Demande terminée ({{ libelle(d.statut) }}).</p>
           } @else if (!peutAvancer()) {
             <p class="empty">
-              Seul le rÃ©parateur (ou un administrateur) peut faire Ã©voluer le statut de la demande.
+              Seul le réparateur (ou un administrateur) peut faire évoluer le statut de la demande.
             </p>
           }
 
@@ -242,7 +242,7 @@ import {
         <p class="empty">Chargement de la demande...</p>
       }
 
-      <a class="btn secondary" routerLink="/reparation">Retour Ã  la liste</a>
+      <a class="btn secondary" routerLink="/reparation">Retour à la liste</a>
     </section>
   `,
 })
@@ -297,13 +297,13 @@ export class DemandeDetail implements OnInit {
   }
 
   optionReparateur(reparateur: Reparateur): string {
-    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' Â· ');
-    return details ? `#${reparateur.id} Â· ${details}` : `RÃ©parateur #${reparateur.id}`;
+    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' · ');
+    return details ? `#${reparateur.id} · ${details}` : `Réparateur #${reparateur.id}`;
   }
 
   nomReparateur(id?: number | null): string {
     if (id == null) {
-      return 'Non assignÃ©';
+      return 'Non assigné';
     }
     return labelReparateur(this.reparateursIndex().get(id), id);
   }
@@ -323,7 +323,7 @@ export class DemandeDetail implements OnInit {
     this.api.planifierIntervention(this.demandeId, new Date(this.dateIntervention).toISOString()).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set('Intervention planifiÃ©e.');
+        this.succes.set('Intervention planifiée.');
         this.dateIntervention = '';
         this.charger();
       },
@@ -380,7 +380,7 @@ export class DemandeDetail implements OnInit {
     this.erreur.set(null);
     this.succes.set(null);
     if (!this.devisForm.montant || this.devisForm.montant <= 0) {
-      this.erreur.set('Le montant doit Ãªtre supÃ©rieur Ã  0.');
+      this.erreur.set('Le montant doit être supérieur à 0.');
       return;
     }
     const payload = this.estAdmin()
@@ -390,7 +390,7 @@ export class DemandeDetail implements OnInit {
     this.api.creerDevis(this.demandeId, payload).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set('Devis proposÃ©.');
+        this.succes.set('Devis proposé.');
         this.devisForm = { montant: 0 };
         this.charger();
       },
@@ -411,7 +411,7 @@ export class DemandeDetail implements OnInit {
     this.api.repondreDevis(devis.id, accepte).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set(accepte ? 'Devis acceptÃ©.' : 'Devis refusÃ©.');
+        this.succes.set(accepte ? 'Devis accepté.' : 'Devis refusé.');
         this.charger();
       },
       error: (err) => {

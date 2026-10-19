@@ -16,6 +16,9 @@ import {
 } from './auth-models';
 import { SessionService } from './session';
 
+/** Marqueur de session non HttpOnly posé par le back (AuthService côté Java). */
+const COOKIE_SESSION_MARQUEUR = 'valorio_session';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -118,6 +121,9 @@ export class AuthService {
   private reinitialiserSession(): void {
     this._accessToken.set(null);
     this._currentUser.set(null);
+    if (this.sessionService) {
+      this.sessionService.deconnexion();
+    }
   }
 
   /**
@@ -125,13 +131,35 @@ export class AuthService {
    * Appelée par l'initialiseur d'application : le bootstrap attend sa résolution
    * afin que les guards voient la session restaurée avant toute navigation
    * (évite la redirection vers /login lors d'un rafraîchissement de page).
+   *
+   * La requête n'est émise que si le marqueur de session (cookie non HttpOnly posé
+   * par le back lors du login/refresh) est présent : une visite anonyme ne déclenche
+   * donc plus de POST /api/auth/refresh en 401 dans la console.
    */
   initialiserSession(): Promise<void> {
     if (!this.promesseInitialisation) {
-      this.promesseInitialisation = firstValueFrom(
-        this.refresh().pipe(catchError(() => of(null)))
-      ).then(() => undefined);
+      this.promesseInitialisation = this.aSessionExistante()
+        ? firstValueFrom(this.refresh().pipe(catchError(() => of(null)))).then(() => undefined)
+        : this.fermerSessionAnonyme();
     }
     return this.promesseInitialisation;
+  }
+
+  /** État anonyme garanti quand aucune session n'est candidate (pas de requête, pas de 401). */
+  private fermerSessionAnonyme(): Promise<void> {
+    this.reinitialiserSession();
+    return Promise.resolve();
+  }
+
+  private aSessionExistante(): boolean {
+    try {
+      const cookies: string = globalThis.document?.cookie ?? '';
+      return cookies
+        .split(';')
+        .some((c) => c.trim() === `${COOKIE_SESSION_MARQUEUR}=1`);
+    } catch {
+      // Environnement sans accès aux cookies (tests SSR) : on tente le refresh.
+      return true;
+    }
   }
 }

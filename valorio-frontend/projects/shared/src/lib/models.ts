@@ -134,7 +134,7 @@ export interface DashboardStats {
 }
 
 /* ------------------------------------------------------------------ */
-/* Module 4 - RÃ©paration                                              */
+/* Module 4 - Réparation                                              */
 /* ------------------------------------------------------------------ */
 
 export type StatutDemande =
@@ -366,7 +366,7 @@ export function prochainStatutCollecte(statut: StatutCollecte): StatutCollecte |
 }
 
 /* ------------------------------------------------------------------ */
-/* RÃ©fÃ©rentiels (entitÃ©s externes) + libellÃ©s                         */
+/* Référentiels (entités externes) + libellés                         */
 /* ------------------------------------------------------------------ */
 
 export function indexParId<T extends { id: number }>(items: readonly T[]): Map<number, T> {
@@ -406,10 +406,10 @@ export function labelReparateur(
   repliId?: number,
 ): string {
   if (reparateur) {
-    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' Â· ');
-    return details ? `#${reparateur.id} Â· ${details}` : `RÃ©parateur #${reparateur.id}`;
+    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' · ');
+    return details ? `#${reparateur.id} · ${details}` : `Réparateur #${reparateur.id}`;
   }
-  return repliId != null ? `RÃ©parateur #${repliId}` : 'RÃ©parateur inconnu';
+  return repliId != null ? `Réparateur #${repliId}` : 'Réparateur inconnu';
 }
 
 /* ------------------------------------------------------------------ */
@@ -425,8 +425,8 @@ export function libelleStatut(statut: string): string {
 
 export function formaterDate(iso?: string | null): string {
   if (!iso) {
-    return 'â€”';
+    return '—';
   }
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? 'â€”' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
 }
