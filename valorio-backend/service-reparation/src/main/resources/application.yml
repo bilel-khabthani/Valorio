@@ -1,6 +1,10 @@
 spring:
   application:
     name: service-reparation
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../../.env[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/valorio?currentSchema=reparation
     username: ${DB_USER:postgres}
@@ -19,6 +23,14 @@ valorio:
     base-url: ${OBJETS_URL:http://localhost:8085}
   auth:
     base-url: ${AUTH_URL:http://localhost:8084}
+  jwt:
+    secret: ${JWT_SECRET:valorio-super-secret-jwt-signing-key-minimum-32-chars!}
+  ai:
+    provider: ${AI_PROVIDER:gemini}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:gemini-3.8-flash}
+    base-url: ${AI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    request-timeout-ms: ${AI_REQUEST_TIMEOUT:20000}
 
 management:
   endpoints:

@@ -30,4 +30,25 @@ describe('ReparationApiService', () => {
     expect(req.request.body).toEqual({ dateIntervention: '2026-06-01T10:00:00.000Z' });
     req.flush({});
   });
+
+  it('lance un diagnostic IA via POST /api/diagnostic-ia', () => {
+    const base = VALORIO_ENV.api.reparation;
+    service.diagnostiquer({ descriptionPanne: 'Écran fissuré' }).subscribe((res) => {
+      expect(res.categoriePanne).toBe('ECRAN');
+    });
+    const req = http.expectOne(`${base}/api/diagnostic-ia`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ descriptionPanne: 'Écran fissuré' });
+    req.flush({
+      categoriePanne: 'ECRAN',
+      gravite: 'ELEVEE',
+      diagnostic: 'Dalle endommagée',
+      causesProbables: ['Chute'],
+      devisEstime: { montantMin: 200, montantMax: 350, delaiJours: 3, devise: 'DT' },
+      reparateursRecommandes: [],
+      confiance: 0.8,
+      source: 'heuristique',
+      avertissements: [],
+    });
+  });
 });

@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 import {
   DemandeReparation,
   Devis,
+  DiagnosticIaRequest,
+  DiagnosticIaResponse,
   Objet,
   Reparateur,
   StatutDemande,
-  Utilisateur,
   VALORIO_ENV,
 } from '@valorio/shared';
 
@@ -41,12 +42,12 @@ export class ReparationApiService {
     return this.http.get<Objet[]>(`${this.base}/api/objets`, { params });
   }
 
-  getUtilisateur(id: number): Observable<Utilisateur> {
-    return this.http.get<Utilisateur>(`${this.base}/api/utilisateurs/${id}`);
+  getUtilisateur(id: number): Observable<{ id: number; nom: string; prenom: string; email: string; telephone: string; ville: string; role: string }> {
+    return this.http.get<{ id: number; nom: string; prenom: string; email: string; telephone: string; ville: string; role: string }>(`${this.base}/api/utilisateurs/${id}`);
   }
 
-  listerUtilisateurs(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.base}/api/utilisateurs`);
+  listerUtilisateurs(): Observable<Array<{ id: number; nom: string; prenom: string; email: string; telephone: string; ville: string; role: string }>> {
+    return this.http.get<Array<{ id: number; nom: string; prenom: string; email: string; telephone: string; ville: string; role: string }>>(`${this.base}/api/utilisateurs`);
   }
 
   listerDemandes(filtre: FiltreDemandes = {}): Observable<DemandeReparation[]> {
@@ -128,5 +129,13 @@ export class ReparationApiService {
 
   getReparateur(id: number): Observable<Reparateur> {
     return this.http.get<Reparateur>(`${this.base}/api/reparateurs/${id}`);
+  }
+
+  diagnostiquer(payload: DiagnosticIaRequest): Observable<DiagnosticIaResponse> {
+    return this.http.post<DiagnosticIaResponse>(`${this.base}/api/diagnostic-ia`, payload);
+  }
+
+  avancerStatut(id: number, statut: string): Observable<DemandeReparation> {
+    return this.http.patch<DemandeReparation>(`${this.base}/api/demandes/${id}/statut`, statut);
   }
 }

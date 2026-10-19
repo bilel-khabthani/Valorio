@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentification", description = "Endpoints d'authentification et gestion de session")
-public class AuthController {
+public class    AuthController {
 
     private final AuthService authService;
 
@@ -41,7 +41,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Inscription d'un nouvel utilisateur")
     public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest request,
+                @Valid @RequestBody RegisterRequest request,
             HttpServletResponse response
     ) {
         AuthResponse authResponse = authService.register(request, response);

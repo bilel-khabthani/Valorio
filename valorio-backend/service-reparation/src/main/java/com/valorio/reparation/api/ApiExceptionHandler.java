@@ -1,5 +1,7 @@
 package com.valorio.reparation.api;
 
+import com.valorio.reparation.ai.security.AccesInterditException;
+import com.valorio.reparation.ai.security.AccesNonAutoriseException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.NoSuchElementException;
@@ -34,6 +36,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ProblemDetail conflit(IllegalStateException ex, HttpServletRequest request) {
         return problem(HttpStatus.CONFLICT, "Opération impossible", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AccesNonAutoriseException.class)
+    public ProblemDetail nonAutorise(AccesNonAutoriseException ex, HttpServletRequest request) {
+        return problem(HttpStatus.UNAUTHORIZED, "Authentification requise", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AccesInterditException.class)
+    public ProblemDetail interdit(AccesInterditException ex, HttpServletRequest request) {
+        return problem(HttpStatus.FORBIDDEN, "Accès interdit", ex.getMessage(), request);
     }
 
     private ProblemDetail problem(HttpStatus status, String title, String detail, HttpServletRequest request) {

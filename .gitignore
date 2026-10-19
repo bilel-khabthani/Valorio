@@ -21,3 +21,9 @@ __pycache__/
 **/.pytest_cache/
 .venv/
 **/.venv/
+
+# Secrets & configuration locale
+.env
+.env.local
+**/.env
+!**/.env.example

@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------------ */
+﻿/* ------------------------------------------------------------------ */
 /* Module 2 - Gestion des objets (service-objets)                     */
 /* ------------------------------------------------------------------ */
 
@@ -55,16 +55,40 @@ export interface Objet {
   dateMaj?: string | null;
 }
 
-export interface Utilisateur {
-  id: number;
-  nom: string;
-  prenom?: string;
-  email?: string;
-  ville: string;
-  latitude?: number;
-  longitude?: number;
-  scoreReputation?: number;
+export interface DiagnosticIaRequest {
+  objetId?: number;
+  descriptionPanne: string;
+  intitule?: string;
+  etat?: string;
+  ageAnnees?: number;
+  ville?: string;
 }
+
+export interface DiagnosticIaResponse {
+  categoriePanne: string;
+  gravite: 'FAIBLE' | 'MOYENNE' | 'ELEVEE' | 'CRITIQUE';
+  diagnostic: string;
+  causesProbables: string[];
+  devisEstime: DevisIa;
+  reparateursRecommandes: ReparateurRecommande[];
+  confiance: number;
+  source: string;
+  avertissements: string[];
+}
+
+export interface DevisIa {
+  montantMin: number;
+  montantMax: number;
+  delaiJours: number;
+  devise: string;
+}
+
+export interface ReparateurRecommande {
+  reparateurId: number;
+  score: number;
+  ville?: string;
+}
+
 
 export interface Categorie {
   id: number;
@@ -110,7 +134,7 @@ export interface DashboardStats {
 }
 
 /* ------------------------------------------------------------------ */
-/* Module 4 - Réparation                                              */
+/* Module 4 - RÃ©paration                                              */
 /* ------------------------------------------------------------------ */
 
 export type StatutDemande =
@@ -270,6 +294,45 @@ export interface AnalyseRecyclabilite {
   centresAppropries: number[];
 }
 
+export interface CentreRecyclageFull {
+  id: number;
+  nom: string;
+  ville: string;
+  codePostal: string;
+  adresse: string;
+  latitude: number;
+  longitude: number;
+  actif: boolean;
+  typesMateriaux: string[];
+  horaireOuverture?: string;
+  horaireFermeture?: string;
+}
+export interface CentreRecyclageFull {
+  id: number;
+  nom: string;
+  ville: string;
+  codePostal: string;
+  adresse: string;
+  latitude: number;
+  longitude: number;
+  actif: boolean;
+  typesMateriaux: string[];
+  horaireOuverture?: string;
+  horaireFermeture?: string;
+}
+
+export interface Utilisateur {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  ville: string;
+  role: string;
+  acteurId?: number | null;
+}
+
+
 export interface HistoriqueCollecte {
   statut: StatutCollecte;
   date: string;
@@ -303,7 +366,7 @@ export function prochainStatutCollecte(statut: StatutCollecte): StatutCollecte |
 }
 
 /* ------------------------------------------------------------------ */
-/* Référentiels (entités externes) + libellés                         */
+/* RÃ©fÃ©rentiels (entitÃ©s externes) + libellÃ©s                         */
 /* ------------------------------------------------------------------ */
 
 export function indexParId<T extends { id: number }>(items: readonly T[]): Map<number, T> {
@@ -318,7 +381,7 @@ export function labelObjet(objet: Pick<Objet, 'intitule'> | null | undefined, re
 }
 
 export function labelUtilisateur(
-  utilisateur: Pick<Utilisateur, 'nom' | 'prenom'> | null | undefined,
+  utilisateur: Pick<{ nom: string; prenom?: string | null }, 'nom' | 'prenom'> | null | undefined,
   repliId?: number,
 ): string {
   if (utilisateur && utilisateur.nom) {
@@ -343,10 +406,10 @@ export function labelReparateur(
   repliId?: number,
 ): string {
   if (reparateur) {
-    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' · ');
-    return details ? `#${reparateur.id} · ${details}` : `Réparateur #${reparateur.id}`;
+    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' Â· ');
+    return details ? `#${reparateur.id} Â· ${details}` : `RÃ©parateur #${reparateur.id}`;
   }
-  return repliId != null ? `Réparateur #${repliId}` : 'Réparateur inconnu';
+  return repliId != null ? `RÃ©parateur #${repliId}` : 'RÃ©parateur inconnu';
 }
 
 /* ------------------------------------------------------------------ */
@@ -362,8 +425,8 @@ export function libelleStatut(statut: string): string {
 
 export function formaterDate(iso?: string | null): string {
   if (!iso) {
-    return '—';
+    return 'â€”';
   }
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? 'â€”' : date.toLocaleString('fr-FR');
 }

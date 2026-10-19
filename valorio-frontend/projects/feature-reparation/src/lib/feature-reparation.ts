@@ -9,7 +9,6 @@ import {
   STATUTS_DEMANDE,
   SessionService,
   StatutDemande,
-  Utilisateur,
   formaterDate,
   indexParId,
   labelObjet,
@@ -261,7 +260,7 @@ export class FeatureReparationHome implements OnInit {
   readonly demandes = signal<DemandeReparation[]>([]);
   readonly reparateurs = signal<Reparateur[]>([]);
   readonly objets = signal<Objet[]>([]);
-  readonly utilisateurs = signal<Utilisateur[]>([]);
+  readonly utilisateurs = signal<{ id: number; nom: string; prenom: string; ville?: string }[]>([]);
   readonly erreur = signal<string | null>(null);
   readonly succes = signal<string | null>(null);
   readonly enCours = signal(false);
@@ -305,9 +304,9 @@ export class FeatureReparationHome implements OnInit {
     return objet.ville ? `${objet.intitule} — ${objet.ville}` : objet.intitule;
   }
 
-  optionUtilisateur(utilisateur: Utilisateur): string {
-    const nom = labelUtilisateur(utilisateur);
-    return utilisateur.ville ? `${nom} — ${utilisateur.ville}` : nom;
+  optionUtilisateur(utilisateur: { nom: string; prenom: string; ville?: string }): string {
+    const nom = labelUtilisateur(utilisateur as any);
+    return utilisateur.ville ? `${nom} - ${utilisateur.ville}` : nom;
   }
 
   nomObjet(id?: number | null): string {

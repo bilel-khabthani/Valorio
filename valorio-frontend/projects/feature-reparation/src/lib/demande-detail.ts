@@ -1,10 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReparationApiService } from '@valorio/api-reparation';
 import {
   DemandeReparation,
   Devis,
+  DiagnosticIaResponse,
   Reparateur,
   SessionService,
   formaterDate,
@@ -21,13 +22,13 @@ import {
     <section class="page">
       <header class="page-header">
         <div class="flex-row">
-          <a class="btn small secondary" routerLink="/reparation">← Retour</a>
+          <a class="btn small secondary" routerLink="/reparation">â† Retour</a>
           <h1>Demande #{{ id }}</h1>
           @if (demande(); as d) {
             <span [class]="'badge ' + d.statut.toLowerCase()">{{ libelle(d.statut) }}</span>
           }
         </div>
-        <span class="muted">Connecté : {{ session.label() }}</span>
+        <span class="muted">ConnectÃ© : {{ session.label() }}</span>
       </header>
 
       @if (erreur()) {
@@ -39,22 +40,24 @@ import {
 
       @if (demande(); as d) {
         <div class="card">
-          <h2>Informations</h2>
+          <div class="spread">
+            <h2>Informations</h2>
+          </div>
           <div class="grid-cards">
             <div class="tile">
               <h3>Objet #{{ d.objetId }}</h3>
               <span class="muted">{{ objet()?.intitule || 'Chargement...' }}</span>
-              <span class="muted">État : {{ objet()?.etat || '—' }}</span>
+              <span class="muted">Ã‰tat : {{ objet()?.etat || 'â€”' }}</span>
             </div>
             <div class="tile">
               <h3>Demandeur</h3>
               <span class="muted">{{ utilisateur()?.nom || 'Chargement...' }}</span>
-              <span class="muted">Ville : {{ utilisateur()?.ville || '—' }}</span>
+              <span class="muted">Ville : {{ utilisateur()?.ville || 'â€”' }}</span>
             </div>
             <div class="tile">
-              <h3>Réparateur</h3>
+              <h3>RÃ©parateur</h3>
               <span class="muted">{{ nomReparateur(d.reparateurId) }}</span>
-              <span class="muted">Créée le {{ date(d.dateCreation) }}</span>
+              <span class="muted">CrÃ©Ã©e le {{ date(d.dateCreation) }}</span>
               @if (d.dateIntervention) {
                 <span class="muted">Intervention : {{ date(d.dateIntervention) }}</span>
               }
@@ -62,6 +65,61 @@ import {
           </div>
           <p class="muted" style="margin-top:0.7rem">{{ d.descriptionPanne }}</p>
         </div>
+
+        @if (peutUtiliserIa()) {
+          <div class="card">
+            <div class="spread">
+              <h2>Assistant IA de diagnostic</h2>
+              <button class="btn" (click)="lancerDiagnostic()" [disabled]="diagnosticEnCours()">
+                {{ diagnosticEnCours() ? 'Analyse...' : 'Analyser la panne' }}
+              </button>
+            </div>
+            @if (!diagnostic() && !diagnosticEnCours()) {
+              <p class="empty">
+                L'IA analyse la description de la panne et propose une estimation indicative du devis.
+              </p>
+            }
+            @if (diagnostic(); as ia) {
+              <div class="flex-row">
+                <span [class]="'badge ' + ia.gravite.toLowerCase()">{{ libelleGravite(ia.gravite) }}</span>
+                <span class="muted">{{ ia.categoriePanne }} Â· {{ ia.source }} Â· {{ pourcentage(ia.confiance) }}</span>
+              </div>
+              <p style="margin-top:0.7rem">{{ ia.diagnostic }}</p>
+              <ul class="timeline">
+                @for (cause of ia.causesProbables; track cause) {
+                  <li>
+                    <span class="when">Cause</span>
+                    <span>{{ cause }}</span>
+                  </li>
+                }
+                <li>
+                  <span class="when">Devis estimÃ©</span>
+                  <span>
+                    {{ ia.devisEstime.montantMin }}â€“{{ ia.devisEstime.montantMax }}
+                    {{ ia.devisEstime.devise }} Â· ~{{ ia.devisEstime.delaiJours }} jour(s)
+                  </span>
+                </li>
+              </ul>
+              @if (ia.reparateursRecommandes.length) {
+                <h3 style="margin-top:1rem">RÃ©parateurs recommandÃ©s par l'IA</h3>
+                <ul class="timeline">
+                  @for (r of ia.reparateursRecommandes; track r.reparateurId) {
+                    <li>
+                      <span class="when">{{ nomReparateur(r.reparateurId) }}</span>
+                      <span class="muted">Score {{ r.score }}{{ r.ville ? ' Â· ' + r.ville : '' }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+              <div class="actions" style="margin-top:0.9rem">
+                <button class="btn secondary" (click)="utiliserDevisIa()">PrÃ©-remplir le devis</button>
+              </div>
+              @for (a of ia.avertissements; track a) {
+                <p class="muted">{{ a }}</p>
+              }
+            }
+          </div>
+        }
 
         <div class="card">
           <div class="spread">
@@ -80,12 +138,12 @@ import {
                 <span>{{ dev.montant }} DT</span>
               </li>
               <li>
-                <span class="when">Délai</span>
-                <span>{{ dev.delaiJours ?? '—' }} jour(s)</span>
+                <span class="when">DÃ©lai</span>
+                <span>{{ dev.delaiJours ?? 'â€”' }} jour(s)</span>
               </li>
               <li>
                 <span class="when">Commentaire</span>
-                <span>{{ dev.commentaire || '—' }}</span>
+                <span>{{ dev.commentaire || 'â€”' }}</span>
               </li>
             </div>
             @if (dev.statut === 'EN_ATTENTE' && peutRepondreDevis()) {
@@ -105,14 +163,14 @@ import {
                 <input type="number" name="montant" [(ngModel)]="devisForm.montant" min="0" step="0.5" required />
               </label>
               <label class="field">
-                <span>Délai (jours)</span>
+                <span>DÃ©lai (jours)</span>
                 <input type="number" name="delaiJours" [(ngModel)]="devisForm.delaiJours" />
               </label>
               @if (estAdmin()) {
                 <label class="field">
-                  <span>Réparateur</span>
+                  <span>RÃ©parateur</span>
                   <select name="reparateurId" [(ngModel)]="devisForm.reparateurId">
-                    <option [ngValue]="undefined">Non assigné</option>
+                    <option [ngValue]="undefined">Non assignÃ©</option>
                     @for (r of reparateurs(); track r.id) {
                       <option [ngValue]="r.id">{{ optionReparateur(r) }}</option>
                     }
@@ -126,7 +184,7 @@ import {
               <button class="btn" type="submit" [disabled]="enCours()">Proposer le devis</button>
             </form>
           } @else if (d.statut === 'DEMANDE') {
-            <p class="empty">En attente d'un devis de la part d'un réparateur.</p>
+            <p class="empty">En attente d'un devis de la part d'un rÃ©parateur.</p>
           } @else {
             <p class="empty">Aucun devis pour cette demande.</p>
           }
@@ -137,7 +195,7 @@ import {
             <h2>Date d'intervention</h2>
             <p class="muted">
               @if (d.dateIntervention) {
-                Intervention planifiée le {{ date(d.dateIntervention) }}.
+                Intervention planifiÃ©e le {{ date(d.dateIntervention) }}.
               } @else {
                 Aucune date d'intervention choisie.
               }
@@ -156,16 +214,16 @@ import {
           <div class="spread">
             <h2>Workflow</h2>
             @if (peutAvancer() && prochain()) {
-              <button class="btn" (click)="avancer()" [disabled]="enCours()">
-                Passer à {{ libelle(prochain()!) }}
+              <button class="btn" (click)="avancerStatut()" [disabled]="enCours()">
+                Passer Ã  {{ libelle(prochain()!) }}
               </button>
             }
           </div>
           @if (!prochain()) {
-            <p class="empty">Demande terminée ({{ libelle(d.statut) }}).</p>
+            <p class="empty">Demande terminÃ©e ({{ libelle(d.statut) }}).</p>
           } @else if (!peutAvancer()) {
             <p class="empty">
-              Seul le réparateur (ou un administrateur) peut faire évoluer le statut de la demande.
+              Seul le rÃ©parateur (ou un administrateur) peut faire Ã©voluer le statut de la demande.
             </p>
           }
 
@@ -184,7 +242,7 @@ import {
         <p class="empty">Chargement de la demande...</p>
       }
 
-      <a class="btn secondary" routerLink="/reparation">Retour à la liste</a>
+      <a class="btn secondary" routerLink="/reparation">Retour Ã  la liste</a>
     </section>
   `,
 })
@@ -200,17 +258,20 @@ export class DemandeDetail implements OnInit {
   readonly reparateurs = signal<Reparateur[]>([]);
   readonly erreur = signal<string | null>(null);
   readonly succes = signal<string | null>(null);
+  readonly diagnostic = signal<DiagnosticIaResponse | null>(null);
+  readonly diagnosticEnCours = signal(false);
   readonly enCours = signal(false);
-
-  protected readonly estAdmin = this.session.estAdmin;
-  protected readonly peutCreerDevis = computed(() => this.session.est('REPARATEUR', 'ADMIN'));
-  protected readonly peutRepondreDevis = computed(() => this.session.est('UTILISATEUR', 'ADMIN'));
-  protected readonly peutAvancer = computed(() => this.session.est('REPARATEUR', 'ADMIN'));
 
   private readonly reparateursIndex = computed(() => indexParId(this.reparateurs()));
 
   readonly libelle = libelleStatut;
   readonly date = formaterDate;
+  protected readonly estAdmin = this.session.estAdmin;
+  protected readonly peutCreerDevis = computed(() => this.session.est('REPARATEUR', 'ADMIN'));
+  protected readonly peutRepondreDevis = computed(() => this.session.est('UTILISATEUR', 'ADMIN'));
+  protected readonly peutAvancer = computed(() => this.session.est('REPARATEUR', 'ADMIN'));
+  protected readonly peutUtiliserIa = computed(() => this.session.est('REPARATEUR', 'ADMIN'));
+
 
   dateIntervention = '';
 
@@ -236,13 +297,13 @@ export class DemandeDetail implements OnInit {
   }
 
   optionReparateur(reparateur: Reparateur): string {
-    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' · ');
-    return details ? `#${reparateur.id} · ${details}` : `Réparateur #${reparateur.id}`;
+    const details = [reparateur.competences, reparateur.ville].filter(Boolean).join(' Â· ');
+    return details ? `#${reparateur.id} Â· ${details}` : `RÃ©parateur #${reparateur.id}`;
   }
 
   nomReparateur(id?: number | null): string {
     if (id == null) {
-      return 'Non assigné';
+      return 'Non assignÃ©';
     }
     return labelReparateur(this.reparateursIndex().get(id), id);
   }
@@ -262,7 +323,7 @@ export class DemandeDetail implements OnInit {
     this.api.planifierIntervention(this.demandeId, new Date(this.dateIntervention).toISOString()).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set('Intervention planifiée.');
+        this.succes.set('Intervention planifiÃ©e.');
         this.dateIntervention = '';
         this.charger();
       },
@@ -319,7 +380,7 @@ export class DemandeDetail implements OnInit {
     this.erreur.set(null);
     this.succes.set(null);
     if (!this.devisForm.montant || this.devisForm.montant <= 0) {
-      this.erreur.set('Le montant doit être supérieur à 0.');
+      this.erreur.set('Le montant doit Ãªtre supÃ©rieur Ã  0.');
       return;
     }
     const payload = this.estAdmin()
@@ -329,7 +390,7 @@ export class DemandeDetail implements OnInit {
     this.api.creerDevis(this.demandeId, payload).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set('Devis proposé.');
+        this.succes.set('Devis proposÃ©.');
         this.devisForm = { montant: 0 };
         this.charger();
       },
@@ -350,7 +411,7 @@ export class DemandeDetail implements OnInit {
     this.api.repondreDevis(devis.id, accepte).subscribe({
       next: () => {
         this.enCours.set(false);
-        this.succes.set(accepte ? 'Devis accepté.' : 'Devis refusé.');
+        this.succes.set(accepte ? 'Devis acceptÃ©.' : 'Devis refusÃ©.');
         this.charger();
       },
       error: (err) => {
@@ -361,26 +422,80 @@ export class DemandeDetail implements OnInit {
   }
 
   avancer(): void {
-    const cible = this.prochain();
-    if (!cible) {
+    const next = this.prochainStatut(this.demande()!.statut);
+    if (!next) {
       return;
     }
-    this.erreur.set(null);
     this.enCours.set(true);
-    this.api.changerStatutDemande(this.demandeId, cible, 'Mise à jour depuis le front').subscribe({
-      next: () => {
+    this.api.avancerStatut(this.id, next).subscribe({
+      next: (demande) => {
+        this.demande.set(demande);
         this.enCours.set(false);
-        this.succes.set('Statut mis à jour.');
-        this.charger();
       },
-      error: (err) => {
-        this.enCours.set(false);
-        this.erreur.set(messageErreur(err));
-      },
+      error: () => this.enCours.set(false),
     });
   }
-}
 
+  private prochainStatut(statut: DemandeReparation['statut']): DemandeReparation['statut'] | null {
+    const ordre: DemandeReparation['statut'][] = [
+      'DEMANDE',
+      'ACCEPTEE',
+      'DIAGNOSTIC',
+      'EN_REPARATION',
+      'TERMINEE',
+      'LIVREE',
+    ];
+    const index = ordre.indexOf(statut);
+    return index >= 0 && index < ordre.length - 1 ? ordre[index + 1] : null;
+  }
+
+  avancerStatut(): void {
+    this.avancer();
+  }
+
+  libelleGravite(gravite: DiagnosticIaResponse['gravite']): string {
+    return gravite.charAt(0).toUpperCase() + gravite.slice(1).toLowerCase();
+  }
+
+  pourcentage(valeur: number): string {
+    return (Math.round(valeur * 100) / 100).toString().replace('.', ',') + '%';
+  }
+
+  utiliserDevisIa(): void {
+    const ia = this.diagnostic();
+    if (!ia) {
+      return;
+    }
+    this.devisForm = {
+      montant: Math.round(ia.devisEstime.montantMin),
+      commentaire: ia.diagnostic.slice(0, 180),
+    };
+  }
+
+  lancerDiagnostic(): void {
+    this.erreur.set(null);
+    this.diagnosticEnCours.set(true);
+    const d = this.demande();
+    this.api
+      .diagnostiquer({
+        objetId: d?.objetId,
+        descriptionPanne: d?.descriptionPanne ?? '',
+        intitule: this.objet()?.intitule,
+        etat: this.objet()?.etat,
+        ville: this.utilisateur()?.ville,
+      })
+      .subscribe({
+        next: (res) => {
+          this.diagnostic.set(res);
+          this.diagnosticEnCours.set(false);
+        },
+        error: (err) => {
+          this.diagnosticEnCours.set(false);
+          this.erreur.set(messageErreur(err));
+        },
+      });
+  }
+}
 function nextStatut(statut: DemandeReparation['statut']): DemandeReparation['statut'] | null {
   const ordre: DemandeReparation['statut'][] = [
     'DEMANDE',

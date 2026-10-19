@@ -2,6 +2,7 @@ package com.valorio.auth.security;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.valorio.auth.domain.Acteur;
 import com.valorio.auth.domain.User;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -39,6 +40,7 @@ public class JwtService {
         payload.put("sub", user.id().toString());
         payload.put("email", user.email());
         payload.put("role", user.role().name());
+        payload.put("acteur", user.acteur() == null ? Acteur.UTILISATEUR.name() : user.acteur().name());
         payload.put("nom", user.nom());
         payload.put("prenom", user.prenom());
         payload.put("iat", now.getEpochSecond());
